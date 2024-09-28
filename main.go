@@ -13,7 +13,7 @@ func main() {
 		listenAddr = ":" + val
 	}
 
-	http.Handle("/", http.FileServer(http.Dir("./static")))
+	http.Handle("/", http.FileServer(http.Dir("static")))
 	http.HandleFunc("/api/hello", api.Hello)
 
 	log.Printf("About to listen on %s.", listenAddr)
