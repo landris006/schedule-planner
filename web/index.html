@@ -1,33 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title></title>
-  <link href="css/style.css" rel="stylesheet">
-</head>
-
-<body>
-  <h1>Schedule Planner</h1>
-
-  <p>hellobello</p>
-    <button>Fetch from server</button>
-    <div><div/>
-
-    <script>
-    const button = document.querySelector('button');
-    const div = document.querySelector('div');
-    button.addEventListener('click', () => {
-      fetch('/api/hello')
-        .then(response => response.json())
-        .then(data => {
-          const pre = document.createElement('pre');
-          pre.textContent = data.message;
-          div.prepend(pre);
-          message.textContent = data.message;
-        })
-    });
-    </script>
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Schedule Planner</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"schedule-planner/api"
+	"schedule-planner/api/handlers"
 )
 
 func main() {
@@ -14,7 +14,8 @@ func main() {
 	}
 
 	http.Handle("/", http.FileServer(http.Dir("static")))
-	http.HandleFunc("/api/hello", api.Hello)
+	http.HandleFunc("/api/hello", handlers.Hello)
+	http.HandleFunc("/api/courses", handlers.GetCourses)
 
 	log.Printf("About to listen on %s.", listenAddr)
 
