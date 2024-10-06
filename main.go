@@ -15,7 +15,7 @@ func main() {
 
 	http.Handle("/", http.FileServer(http.Dir("static")))
 	http.HandleFunc("/api/hello", handlers.Hello)
-	http.HandleFunc("/api/courses", handlers.GetCourses)
+	http.HandleFunc("/api/class", handlers.GetClasses)
 
 	log.Printf("About to listen on %s.", listenAddr)
 

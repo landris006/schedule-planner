@@ -4,19 +4,17 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	utils "schedule-planner/api"
 	"strconv"
-	"strings"
 
 	"golang.org/x/net/html"
 )
 
-func GetCourses(writer http.ResponseWriter, request *http.Request) {
-	name := request.URL.Query().Get("name")
-	// TODO: mode
-	// mode := request.URL.Query().Get("mode")
+func GetClasses(writer http.ResponseWriter, request *http.Request) {
+	mode := request.URL.Query().Get("mode")
+	term := request.URL.Query().Get("term")
+	semester := request.URL.Query().Get("semester")
 
-	doc, err := scrapeCourses(name)
+	doc, err := scrapeClasses(mode, term, semester)
 	if err != nil {
 		log.Print(err)
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -35,7 +33,7 @@ func GetCourses(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func scrapeCourses(name string) (*html.Node, error) {
+func scrapeClasses(mode string, term string, semester string) (*html.Node, error) {
 	url := "https://tanrend.elte.hu/tanrendnavigation.php"
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -49,9 +47,9 @@ func scrapeCourses(name string) (*html.Node, error) {
 	)
 
 	query := req.URL.Query()
-	query.Add("m", "keresnevre")
-	query.Add("k", name)
-	query.Add("f", "2024-2025-1")
+	query.Add("m", mode)
+	query.Add("k", term)
+	query.Add("f", semester)
 	req.URL.RawQuery = query.Encode()
 
 	client := &http.Client{}
@@ -69,74 +67,18 @@ func scrapeCourses(name string) (*html.Node, error) {
 	return doc, nil
 }
 
-type Course struct {
-	Code    string   `json:"code"`
-	Name    string   `json:"name"`
-	Classes []*Class `json:"classes"`
-}
-
-type Class struct {
-	Code       string `json:"code"`
-	Instructor string `json:"instructor"`
-	Time       string `json:"time"`
-	Place      string `json:"place"`
-	Capacity   int    `json:"capacity"`
-	Type       string `json:"type"`
+type Row struct {
+	Time            string `json:"time"`
+	Code            string `json:"code"`
+	Name            string `json:"name"`
+	Place           string `json:"place"`
+	Capacity        int    `json:"capacity"`
+	Instructor      string `json:"instructor"`
+	NumberOfClasses string `json:"numberOfClasses"`
 }
 
 // TODO: error handling
-func parseHtml(root *html.Node) []*Course {
-	rows := parseIntoRows(root)
-
-	courses := make(map[string]*Course)
-
-	for _, row := range rows {
-		split := strings.Split(row.Code, " ")
-		code, classType := split[0], split[1]
-
-		// TODO: find a more sofisticated way to find the common part of the code
-		courseCode := utils.FirstN(code, 10)
-
-		if _, ok := courses[courseCode]; !ok {
-			courses[courseCode] = &Course{
-				Code:    courseCode,
-				Name:    row.Name,
-				Classes: make([]*Class, 0),
-			}
-		}
-		course := courses[courseCode]
-
-		course.Classes = append(course.Classes, &Class{
-			Code:       row.Code,
-			Instructor: row.Instructor,
-			Time:       row.Time,
-			Place:      row.Place,
-			Capacity:   row.Capacity,
-			Type:       classType,
-		})
-	}
-
-	coursesArray := make([]*Course, len(courses))
-	i := 0
-	for _, course := range courses {
-		coursesArray[i] = course
-		i++
-	}
-
-	return coursesArray
-}
-
-type Row struct {
-	Time            string
-	Code            string
-	Name            string
-	Place           string
-	Capacity        int
-	Instructor      string
-	NumberOfClasses string
-}
-
-func parseIntoRows(root *html.Node) []Row {
+func parseHtml(root *html.Node) []Row {
 	rows := make([]Row, 0)
 
 	var traverse func(*html.Node)
@@ -168,6 +110,7 @@ func parseIntoRows(root *html.Node) []Row {
 						row.NumberOfClasses = c.FirstChild.Data
 					default:
 						log.Printf("Unexpected structure. <%s>", c.Data)
+
 					}
 					index++
 				}
