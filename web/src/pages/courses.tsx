@@ -1,9 +1,11 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useQuery } from '@/utils';
 import Button from '@/components/button';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import { useLabel } from '@/contexts/label/label-context';
 
 export default function Courses() {
+  const { labels } = useLabel();
   const {
     data: courses,
     isLoading,
@@ -22,12 +24,37 @@ export default function Courses() {
 
   const input = useRef<HTMLInputElement>(null);
 
+  const searchModeOptions: {
+    label: string;
+    value: SearchModes;
+  }[] = useMemo(
+    () => [
+      {
+        label: labels.COURSE_NAME,
+        value: 'keresnevre',
+      },
+      {
+        label: labels.COURSE_CODE,
+        value: 'keres_kod_azon',
+      },
+      {
+        label: labels.INSTRUCTOR_NAME,
+        value: 'keres_okt',
+      },
+      {
+        label: labels.INSTRUCTOR_CODE,
+        value: 'keres_oktnk',
+      },
+    ],
+    [labels],
+  );
+
   return (
     <main className="flex flex-col items-center">
       <form className="card-body">
         <div className="flex gap-2">
           <div className="flex flex-col">
-            <label htmlFor="name">Semester</label>
+            <label htmlFor="name">{labels.SEMESTER}</label>
             <select
               className="select select-bordered w-full max-w-xs"
               value={formState.semester}
@@ -47,19 +74,18 @@ export default function Courses() {
           </div>
 
           <div className="flex flex-col">
-            <label htmlFor="name">Mode</label>
+            <label htmlFor="name">{labels.MODE}</label>
             <select
               className="select select-bordered w-full max-w-xs"
               value={formState.mode}
               onChange={(e) =>
                 setFormState((prev) => ({
                   ...prev,
-                  mode: e.target
-                    .value as (typeof SEARCH_MODE_OPTIONS)[number]['value'],
+                  mode: e.target.value as SearchModes,
                 }))
               }
             >
-              {SEARCH_MODE_OPTIONS.map((mode) => (
+              {searchModeOptions.map((mode) => (
                 <option value={mode.value} key={mode.value}>
                   {mode.label}
                 </option>
@@ -68,7 +94,7 @@ export default function Courses() {
           </div>
         </div>
         <div className="flex flex-col">
-          <label htmlFor="name">Search term</label>
+          <label htmlFor="name">{labels.SEARCH_TERM}</label>
 
           <input
             ref={input}
@@ -97,9 +123,8 @@ export default function Courses() {
       </form>
 
       <div className="flex flex-col gap-4">
-        {isLoading && <p>Loading...</p>}
-        {isError && <p>Error loading courses...</p>}
-        {isSuccess && !courses?.length && <p>No courses found</p>}
+        {isError && <p>{labels.ERROR}...</p>}
+        {isSuccess && !courses?.length && <p>{labels.NO_RECORDS_FOUND}</p>}
 
         {courses?.map((course) => (
           <div className="card" key={course.code}>
@@ -118,7 +143,7 @@ export default function Courses() {
 
               {course.practices.length > 0 && (
                 <>
-                  <h2 className="card-title">Practices:</h2>
+                  <h2 className="card-title">{labels.PRACTICES}:</h2>
                   <div className="flex flex-col gap-1">
                     {course.practices.map((classItem) => (
                       <ClassCard
@@ -140,6 +165,7 @@ export default function Courses() {
 }
 
 function ClassCard({ classItem }: { classItem: Class }) {
+  const { labels } = useLabel();
   const [code, _] = classItem.code.split(' ');
   const classNumber =
     classItem.type === 'practice' &&
@@ -151,19 +177,19 @@ function ClassCard({ classItem }: { classItem: Class }) {
         {classItem.type === 'lecture' ? 'Lecture' : `Practice ${classNumber}.`}
       </h2>
       <div className="grid gap-x-3 [grid-template-columns:auto_1fr]">
-        <span className="font-bold">Code:</span>
+        <span className="font-bold">{labels.CODE}:</span>
         <span>{code}</span>
 
-        <span className="font-bold">Instructor:</span>
+        <span className="font-bold">{labels.INSTRUCTOR}:</span>
         <span>{classItem.instructor}</span>
 
-        <span className="font-bold">Time:</span>
+        <span className="font-bold">{labels.TIME}:</span>
         <span>{classItem.time}</span>
 
-        <span className="font-bold">Place:</span>
+        <span className="font-bold">{labels.PLACE}:</span>
         <span>{classItem.place}</span>
 
-        <span className="font-bold">Capacity:</span>
+        <span className="font-bold">{labels.CAPACITY}:</span>
         <span>{classItem.capacity}</span>
       </div>
     </div>
@@ -177,28 +203,15 @@ const semesters: string[] = Array.from(
     `${year - Math.round(i / 2)}-${year + 1 - Math.round(i / 2)}-${(i % 2) + 1}`, // 🤮
 );
 
-const SEARCH_MODE_OPTIONS = [
-  {
-    label: 'Course name',
-    value: 'keresnevre',
-  },
-  {
-    label: 'Course code',
-    value: 'keres_kod_azon',
-  },
-  {
-    label: 'Instructor name',
-    value: 'keres_okt',
-  },
-  {
-    label: 'Instructor code',
-    value: 'keres_oktnk',
-  },
-] as const;
+type SearchModes =
+  | 'keresnevre'
+  | 'keres_kod_azon'
+  | 'keres_okt'
+  | 'keres_oktnk';
 
 type QueryOptions = {
   term: string;
-  mode: (typeof SEARCH_MODE_OPTIONS)[number]['value'];
+  mode: SearchModes;
   semester: string;
 };
 
@@ -228,9 +241,11 @@ type ClassRow = {
   numberOfClasses: string;
 };
 
-const typeMap = {
+const COURSE_TYPE_MAP = {
   '(előadás)': 'lecture',
+  '(lecture)': 'lecture',
   '(gyakorlat)': 'practice',
+  '(practice)': 'practice',
 } as const;
 
 async function fetchCourses(queryOptions: QueryOptions): Promise<Course[]> {
@@ -264,22 +279,27 @@ function groupClassesIntoCourses(classRows: ClassRow[]): Course[] {
     }
     course = courses.get(courseCode)!;
 
+    const mappedType =
+      COURSE_TYPE_MAP[type as keyof typeof COURSE_TYPE_MAP] ?? 'unknown';
+
     const classItem: Class = {
       code: row.code,
       instructor: row.instructor,
       time: row.time,
       place: row.place,
       capacity: row.capacity,
-      type: typeMap[type as keyof typeof typeMap] ?? 'unknown',
+      type: mappedType,
     };
 
-    if (type === '(előadás)') {
+    if (mappedType === 'lecture') {
       course.lecture = classItem;
     }
-    if (type === '(gyakorlat)') {
+    if (mappedType === 'practice') {
       course.practices.push(classItem);
     }
   });
 
-  return Array.from(courses.values());
+  return Array.from(courses.values()).filter(
+    (course) => course.lecture || course.practices.length > 0,
+  );
 }

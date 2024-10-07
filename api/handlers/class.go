@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"slices"
 	"strconv"
 
 	"golang.org/x/net/html"
@@ -14,7 +15,21 @@ func GetClasses(writer http.ResponseWriter, request *http.Request) {
 	term := request.URL.Query().Get("term")
 	semester := request.URL.Query().Get("semester")
 
-	doc, err := scrapeClasses(mode, term, semester)
+	cookie, err := request.Cookie("locale")
+	var locale string
+	if err != nil {
+		locale = "en"
+	} else {
+		locale = cookie.Value
+	}
+
+	if !slices.Contains([]string{"hu", "en"}, locale) {
+		log.Print("Invalid locale")
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	doc, err := scrapeClasses(mode, term, semester, locale)
 	if err != nil {
 		log.Print(err)
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -33,8 +48,11 @@ func GetClasses(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func scrapeClasses(mode string, term string, semester string) (*html.Node, error) {
+func scrapeClasses(mode string, term string, semester string, locale string) (*html.Node, error) {
 	url := "https://tanrend.elte.hu/tanrendnavigation.php"
+	if locale == "en" {
+		url = "https://tanrend.elte.hu/tanrendnavigation_en.php"
+	}
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -83,11 +101,11 @@ func parseHtml(root *html.Node) []Row {
 
 	var traverse func(*html.Node)
 	traverse = func(n *html.Node) {
-		if n.Type == html.ElementNode && n.Parent.Data == "tbody" && n.Data == "tr" {
+		if n != nil && n.Type == html.ElementNode && n.Parent.Data == "tbody" && n.Data == "tr" {
 
 			row := Row{}
 			index := 0
-			for c := n.FirstChild; c != nil; c = c.NextSibling {
+			for c := n.FirstChild; c != nil && c.FirstChild != nil; c = c.NextSibling {
 				if c.Type == html.ElementNode && c.Data == "td" {
 					switch index {
 					case 0:
