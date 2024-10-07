@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react';
-import { cn, useQuery } from './utils';
+import { useQuery } from './utils';
+import Button from '@/components/button';
+import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 
 export default function App() {
   const {
@@ -80,18 +82,18 @@ export default function App() {
           />
         </div>
 
-        <button
-          className={cn('btn btn-primary', {
-            'btn-disabled': !formState.term,
-          })}
+        <Button
+          label="Search"
           type="submit"
+          className="btn-primary"
+          disabled={!formState.term}
+          isLoading={isLoading}
+          icon={<MagnifyingGlassIcon width={20} height={20} />}
           onClick={(e) => {
             e.preventDefault();
             courseQuery.fetch(formState);
           }}
-        >
-          Search
-        </button>
+        />
       </form>
 
       <div className="flex flex-col gap-4">
