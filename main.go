@@ -13,7 +13,7 @@ func main() {
 		listenAddr = ":" + val
 	}
 
-	http.Handle("/", http.FileServer(http.Dir("static")))
+	http.HandleFunc("/", handlers.ServeStatic("static", "index.html"))
 	http.HandleFunc("/api/hello", handlers.Hello)
 	http.HandleFunc("/api/class", handlers.GetClasses)
 
