@@ -117,6 +117,9 @@ export default function Courses() {
           icon={<MagnifyingGlassIcon width={20} height={20} />}
           onClick={(e) => {
             e.preventDefault();
+            if (courseQuery.status === 'loading') {
+              return;
+            }
             courseQuery.fetch(formState);
           }}
         />
@@ -126,39 +129,62 @@ export default function Courses() {
         {isError && <p>{labels.ERROR}...</p>}
         {isSuccess && !courses?.length && <p>{labels.NO_RECORDS_FOUND}</p>}
 
-        {courses?.map((course) => (
-          <div className="card" key={course.code}>
-            <div className="card-body rounded-md bg-base-200">
-              <h2 className="card-title">
-                {course.name} ({course.code})
-              </h2>
+        {courses?.map((course) => {
+          const lectures = course.classes.filter((c) => c.type === 'lecture');
+          const practices = course.classes.filter((c) => c.type === 'practice');
 
-              {course.lecture && (
-                <>
-                  <h2 className="card-title">Lecture:</h2>
+          return (
+            <div className="card" key={course.code}>
+              <div className="card-body rounded-md bg-base-200">
+                <h2 className="card-title">
+                  {course.name} ({course.code})
+                </h2>
 
-                  <ClassCard classItem={course.lecture} />
-                </>
-              )}
+                {lectures.length > 0 && (
+                  <>
+                    <h2 className="card-title">
+                      {lectures.length > 1 ? labels.LECTURES : labels.LECTURE}
+                    </h2>
+                    <div>
+                      {lectures.map((classItem) => (
+                        <ClassCard
+                          key={
+                            classItem.code +
+                            classItem.time +
+                            classItem.instructor
+                          }
+                          classItem={classItem}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
 
-              {course.practices.length > 0 && (
-                <>
-                  <h2 className="card-title">{labels.PRACTICES}:</h2>
-                  <div className="flex flex-col gap-1">
-                    {course.practices.map((classItem) => (
-                      <ClassCard
-                        key={
-                          classItem.code + classItem.time + classItem.instructor
-                        }
-                        classItem={classItem}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
+                {practices.length > 0 && (
+                  <>
+                    <h2 className="card-title">
+                      {practices.length > 1
+                        ? labels.PRACTICES
+                        : labels.PRACTICE}
+                    </h2>
+                    <div className="flex flex-col gap-1">
+                      {practices.map((classItem) => (
+                        <ClassCard
+                          key={
+                            classItem.code +
+                            classItem.time +
+                            classItem.instructor
+                          }
+                          classItem={classItem}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </main>
   );
@@ -174,7 +200,9 @@ function ClassCard({ classItem }: { classItem: Class }) {
   return (
     <div className="rounded-md bg-base-100 p-3">
       <h2 className="text-lg font-bold">
-        {classItem.type === 'lecture' ? 'Lecture' : `Practice ${classNumber}.`}
+        {classItem.type === 'lecture'
+          ? labels.LECTURE
+          : `${labels.PRACTICE} ${classNumber}.`}
       </h2>
       <div className="grid gap-x-3 [grid-template-columns:auto_1fr]">
         <span className="font-bold">{labels.CODE}:</span>
@@ -218,8 +246,7 @@ type QueryOptions = {
 type Course = {
   code: string;
   name: string;
-  lecture: Class | undefined;
-  practices: Class[];
+  classes: Class[];
 };
 
 type Class = {
@@ -228,7 +255,7 @@ type Class = {
   instructor: string;
   place: string;
   capacity: number;
-  type: 'lecture' | 'practice' | 'unknown';
+  type: 'lecture' | 'practice';
 };
 
 type ClassRow = {
@@ -273,14 +300,15 @@ function groupClassesIntoCourses(classRows: ClassRow[]): Course[] {
       courses.set(courseCode, {
         code: courseCode,
         name: row.name,
-        lecture: undefined,
-        practices: [],
+        classes: [],
       });
     }
     course = courses.get(courseCode)!;
 
-    const mappedType =
-      COURSE_TYPE_MAP[type as keyof typeof COURSE_TYPE_MAP] ?? 'unknown';
+    const mappedType = COURSE_TYPE_MAP[type as keyof typeof COURSE_TYPE_MAP];
+    if (!mappedType) {
+      return;
+    }
 
     const classItem: Class = {
       code: row.code,
@@ -291,15 +319,10 @@ function groupClassesIntoCourses(classRows: ClassRow[]): Course[] {
       type: mappedType,
     };
 
-    if (mappedType === 'lecture') {
-      course.lecture = classItem;
-    }
-    if (mappedType === 'practice') {
-      course.practices.push(classItem);
-    }
+    course.classes.push(classItem);
   });
 
   return Array.from(courses.values()).filter(
-    (course) => course.lecture || course.practices.length > 0,
+    (course) => course.classes.length > 0,
   );
 }

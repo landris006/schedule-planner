@@ -226,6 +226,18 @@ export const labels = {
     hu: 'Összes törlése',
     en: 'Clear all',
   },
+  LECTURE: {
+    hu: 'Előadás',
+    en: 'Lecture',
+  },
+  LECTURES: {
+    hu: 'Előadások',
+    en: 'Lectures',
+  },
+  PRACTICE: {
+    hu: 'Gyakorlat',
+    en: 'Practice',
+  },
   PRACTICES: {
     hu: 'Gyakorlatok',
     en: 'Practices',
