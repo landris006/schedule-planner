@@ -11,6 +11,9 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8080/',
       },
+      '/tanrendnavigation': {
+        target: 'http://localhost:8080/',
+      },
     },
   },
   resolve: {

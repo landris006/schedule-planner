@@ -13,7 +13,7 @@ export default function Courses() {
     isSuccess,
     ...courseQuery
   } = useQuery({
-    fetcher: fetchCourses,
+    fetcher: (opts: QueryOptions) => scrapeClasses(opts).then(parseCourses),
   });
 
   const [formState, setFormState] = useState<QueryOptions>({
@@ -150,7 +150,9 @@ export default function Courses() {
                         <ClassCard
                           key={
                             classItem.code +
-                            classItem.time +
+                            classItem.time?.day +
+                            classItem.time?.start +
+                            classItem.place +
                             classItem.instructor
                           }
                           classItem={classItem}
@@ -172,7 +174,9 @@ export default function Courses() {
                         <ClassCard
                           key={
                             classItem.code +
-                            classItem.time +
+                            classItem.time?.day +
+                            classItem.time?.start +
+                            classItem.place +
                             classItem.instructor
                           }
                           classItem={classItem}
@@ -211,8 +215,17 @@ function ClassCard({ classItem }: { classItem: Class }) {
         <span className="font-bold">{labels.INSTRUCTOR}:</span>
         <span>{classItem.instructor}</span>
 
-        <span className="font-bold">{labels.TIME}:</span>
-        <span>{classItem.time}</span>
+        <>
+          <span className="font-bold">{labels.DAY}:</span>
+          <span>{classItem.time?.day ?? '-'}</span>
+
+          <span className="font-bold">{labels.TIME}:</span>
+          <span>
+            {classItem.time
+              ? `${classItem.time.start}-${classItem.time.end}`
+              : '-'}
+          </span>
+        </>
 
         <span className="font-bold">{labels.PLACE}:</span>
         <span>{classItem.place}</span>
@@ -243,14 +256,14 @@ type QueryOptions = {
   semester: string;
 };
 
-type Course = {
+export type Course = {
   code: string;
   name: string;
   classes: Class[];
 };
 
 type Class = {
-  time: string;
+  time?: Time;
   code: string;
   instructor: string;
   place: string;
@@ -258,14 +271,10 @@ type Class = {
   type: 'lecture' | 'practice';
 };
 
-type ClassRow = {
-  time: string;
-  code: string;
-  name: string;
-  place: string;
-  capacity: number;
-  instructor: string;
-  numberOfClasses: string;
+type Time = {
+  start: number;
+  end: number;
+  day: number;
 };
 
 const COURSE_TYPE_MAP = {
@@ -275,21 +284,50 @@ const COURSE_TYPE_MAP = {
   '(practice)': 'practice',
 } as const;
 
-async function fetchCourses(queryOptions: QueryOptions): Promise<Course[]> {
-  const query = new URLSearchParams(queryOptions);
-  const url = `/api/class?${query.toString()}`;
+async function scrapeClasses(queryOptions: QueryOptions): Promise<string> {
+  const query = new URLSearchParams({
+    m: queryOptions.mode,
+    k: queryOptions.term,
+    f: queryOptions.semester,
+  });
+  const req = new Request(`/tanrendnavigation?${query.toString()}`, {
+    method: 'GET',
+    headers: {
+      Accept: 'text/html',
+    },
+  });
 
-  const res = await fetch(url);
-  const classRows: ClassRow[] = await res.json();
-
-  return groupClassesIntoCourses(classRows);
+  return fetch(req).then((res) => res.text());
 }
 
-function groupClassesIntoCourses(classRows: ClassRow[]): Course[] {
+function parseCourses(htmlString: string) {
   const courses = new Map<string, Course>();
 
-  classRows.forEach((row) => {
-    const [code, type] = row.code.split(' ');
+  const doc = new DOMParser().parseFromString(htmlString, 'text/html');
+
+  const rows = doc.querySelectorAll('tr');
+  rows.forEach((row) => {
+    const cells = Array.from(row.querySelectorAll('td')).map((cell) =>
+      cell.textContent?.trim(),
+    );
+    if (!cells.length) {
+      return;
+    }
+
+    if (cells.some((cell) => cell === '' || cell === undefined)) {
+      return;
+    }
+    const [
+      timeString,
+      _code,
+      name,
+      place,
+      capacity,
+      instructor,
+      _numberOfClasses,
+    ] = cells as string[]; // cast is only valid because we checked (`cells.some(...)`)
+
+    const [code, type] = _code.split(' ');
 
     const split = code.split('-');
     split.pop();
@@ -299,7 +337,7 @@ function groupClassesIntoCourses(classRows: ClassRow[]): Course[] {
     if (!course) {
       courses.set(courseCode, {
         code: courseCode,
-        name: row.name,
+        name: name,
         classes: [],
       });
     }
@@ -310,19 +348,66 @@ function groupClassesIntoCourses(classRows: ClassRow[]): Course[] {
       return;
     }
 
+    const time = parseTime(timeString);
+
     const classItem: Class = {
-      code: row.code,
-      instructor: row.instructor,
-      time: row.time,
-      place: row.place,
-      capacity: row.capacity,
+      code: code,
+      instructor,
+      time,
+      place,
+      capacity: parseInt(capacity),
       type: mappedType,
     };
 
-    course.classes.push(classItem);
+    const alreadyExists = course.classes.find(
+      // the classItems we are checking are constructed the same way (same order of keys) so this should be fine
+      (c) => JSON.stringify(c) === JSON.stringify(classItem),
+    );
+
+    if (!alreadyExists) {
+      course.classes.push(classItem);
+    }
   });
 
   return Array.from(courses.values()).filter(
     (course) => course.classes.length > 0,
   );
+}
+
+const DAY_MAP = {
+  Monday: 0,
+  Tuesday: 1,
+  Wednesday: 2,
+  Thursday: 3,
+  Friday: 4,
+  Saturday: 5,
+  Sunday: 6,
+  Hétfő: 0,
+  Kedd: 1,
+  Szerda: 2,
+  Csütörtök: 3,
+  Péntek: 4,
+  Szombat: 5,
+  Vasárnap: 6,
+};
+
+function parseTime(timeString: string): Time | undefined {
+  try {
+    const [day, duration] = timeString.split(' ');
+
+    const time: Time = {
+      day: DAY_MAP[day as keyof typeof DAY_MAP],
+      start: hhmmToFloat(duration.split('-')[0]),
+      end: hhmmToFloat(duration.split('-')[1]),
+    };
+
+    return time;
+  } catch (_e) {
+    return undefined;
+  }
+}
+
+function hhmmToFloat(hhmm: string) {
+  const [hour, minute] = hhmm.split(':');
+  return parseFloat(hour) + parseFloat(minute) / 60;
 }
