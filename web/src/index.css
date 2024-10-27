@@ -6,4 +6,11 @@
 
 :root {
   font-family: 'Roboto', sans-serif;
+
+  --fc-border-color: #35373b;
+
+  --fc-page-bg-color: #1e1e1e;
+  /* --fc-event-selected-overlay-color: transparent; */
+  /* --fc-today-bg-color: transparent; */
+  /* --fc-event-border-color: #000; */
 }

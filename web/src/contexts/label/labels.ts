@@ -2,6 +2,10 @@ export const localeOptions = ['hu', 'en'] as const;
 export type Locale = (typeof localeOptions)[number];
 
 export const labels = {
+  DAY: {
+    hu: 'Nap',
+    en: 'Day',
+  },
   CONFIRM: {
     hu: 'Rendben',
     en: 'Confirm',
