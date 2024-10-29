@@ -27,8 +27,8 @@ type Course struct {
 
 // 5 egész percekre kerekített diszkrét értékek
 type Time struct {
-	Start int     `json:"start"` // 0 - 287
-	End   int     `json:"end"`   // 0 - 287
+	Start float32 `json:"start"` // 0 - 23.99
+	End   float32 `json:"end"`   // 0 - 23.99
 	Day   Weekday `json:"day"`   // 0 = Monday, 1 = Tuesday, 2 = Wednesday, 3 = Thursday, 4 = Friday, 5 = Saturday, 6 = Sunday
 }
 
