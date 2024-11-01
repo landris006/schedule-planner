@@ -22,7 +22,9 @@ type Course struct {
 	Subject    *Subject   `json:"subject"`
 	Code       string     `json:"code"`
 	Name       string     `json:"name"`
-	Time       Time       `json:"time"`
+	Day        Weekday    `json:"day"` // 0 = Monday, 1 = Tuesday, 2 = Wednesday, 3 = Thursday, 4 = Friday, 5 = Saturday, 6 = Sunday
+	StartTime  Time       `json:"starttime"`
+	EndTime    Time       `json:"endtime"`
 	Instructor string     `json:"instructor"`
 	Location   string     `json:"location"`
 	Capacity   int        `json:"capacity"`
@@ -31,26 +33,29 @@ type Course struct {
 
 // 5 egész percekre kerekített diszkrét értékek
 type Time struct {
-	Start float32 `json:"start"` // 0 - 23.99
-	End   float32 `json:"end"`   // 0 - 23.99
-	Day   Weekday `json:"day"`   // 0 = Monday, 1 = Tuesday, 2 = Wednesday, 3 = Thursday, 4 = Friday, 5 = Saturday, 6 = Sunday
+	Hour   int32 `json:"hour"`
+	Minute int32 `json:"minute"`
 }
 
-func makeTime(day Weekday, start float32, end float32) (*Time, error) { // constructs Time, gives an error if invalid
+func (time1 Time) isBefore(time2 Time) bool {
+	if time1.Hour < time2.Hour {
+		return true
+	} else if time1.Hour == time2.Hour && time1.Minute < time2.Minute {
+		return true
+	} else {
+		return false
+	}
+}
+
+func makeTime(hour int32, minute int32) (*Time, error) {
+	// constructs Time, gives an error if invalid
 	var time Time
 	var err error
-	if day < Monday || day > Sunday { // day is not real
-		err = fmt.Errorf("invalid day of the week: %v", day)
-	} else if start < 0.0 || start > 24.0 {
-		err = fmt.Errorf("invalid start time: %v", start)
-	} else if end < 0.0 || end > 24.0 {
-		err = fmt.Errorf("invalid end time: %v", end)
-	} else if start > end {
-		err = fmt.Errorf("end time is greater than start time: %v < %v", start, end)
+	if hour < 0 || hour > 23 || minute < 0 || minute > 59 { // time is not real
+		err = fmt.Errorf("invalid start time: %v:%v", hour, minute)
 	} else {
-		time.Start = start
-		time.End = end
-		time.Day = day
+		time.Hour = hour
+		time.Minute = minute
 	}
 
 	if err == nil {
@@ -61,10 +66,11 @@ func makeTime(day Weekday, start float32, end float32) (*Time, error) { // const
 
 }
 
-func forceTime(day Weekday, start float32, end float32) *Time { // constructs Time, gives default value (midnight on Monday) if invalid
-	time, err := makeTime(day, start, end)
+func forceTime(hour int32, minute int32) *Time {
+	// constructs Time, gives default value (midnight on Monday) if invalid
+	time, err := makeTime(hour, minute)
 	if err != nil {
-		return &Time{0, 0, Monday}
+		return &Time{0, 0}
 	} else {
 		return time
 	}
@@ -100,11 +106,11 @@ func (ct CourseType) ordinal() int {
 }
 
 func courseCompatible(course1 Course, course2 Course) bool {
-	if course1.Time.Day != course2.Time.Day { // courses are on different days
+	if course1.Day != course2.Day { // courses are on different days
 		return true
-	} else if course1.Time.End < course2.Time.Start { // first course ends before second course starts
+	} else if course1.EndTime.isBefore(course2.StartTime) { // first course ends before second course starts
 		return true
-	} else if course2.Time.End < course1.Time.Start { // second course ends before first course starts
+	} else if course2.EndTime.isBefore(course1.StartTime) { // second course ends before first course starts
 		return true
 	} else { // courses intersect
 		return false
@@ -113,39 +119,39 @@ func courseCompatible(course1 Course, course2 Course) bool {
 
 func main() {
 	var sub = Subject{"", "", []*Course{}}
-	var course1 = Course{&sub, "", "", *forceTime(Wednesday, 8.0, 8.50), "", "", 100, Lecture}
-	var course2 = Course{&sub, "", "", *forceTime(Wednesday, 8.0, 8.50), "", "", 100, Lecture}
+	var course1 = Course{&sub, "", "", Wednesday, *forceTime(8, 0), *forceTime(8, 30), "", "", 100, Lecture}
+	var course2 = Course{&sub, "", "", Wednesday, *forceTime(8, 0), *forceTime(8, 30), "", "", 100, Lecture}
 	fmt.Println(courseCompatible(course1, course2)) // false
 
-	course1.Time.Day = Tuesday
+	course1.Day = Tuesday
 	fmt.Println(courseCompatible(course1, course2)) // true
 
-	course2.Time = *forceTime(Tuesday, 9.0, 9.50)
+	course2.Day = Tuesday
+	course2.StartTime = *forceTime(9, 0)
+	course2.EndTime = *forceTime(9, 30)
 	fmt.Println(courseCompatible(course1, course2)) // true
 
-	course1.Time = *forceTime(Tuesday, 9.0, 9.50)
-	course2.Time = *forceTime(Tuesday, 8.0, 8.50)
+	course1.StartTime = *forceTime(9, 0)
+	course1.EndTime = *forceTime(9, 30)
+	course2.StartTime = *forceTime(8, 0)
+	course2.EndTime = *forceTime(8, 30)
 	fmt.Println(courseCompatible(course1, course2)) // true
 
-	course1.Time = *forceTime(Tuesday, 7.0, 9.50)
-	course2.Time = *forceTime(Tuesday, 8.0, 8.50)
+	course1.StartTime = *forceTime(7, 0)
+	course1.EndTime = *forceTime(9, 30)
+	course2.StartTime = *forceTime(8, 0)
+	course2.EndTime = *forceTime(8, 30)
 	fmt.Println(courseCompatible(course1, course2)) // false
 
-	time, err := makeTime(Sunday, 8, 10) // OK
+	time, err := makeTime(8, 10) // OK
 	fmt.Printf("time: %v, err: %v\n", time, err)
 
-	time, err = makeTime(-1, 8, 10) // day not okay
+	time, err = makeTime(-20, 10) // hour not okay
 	fmt.Printf("time: %v, err: %v\n", time, err)
 
-	time, err = makeTime(Sunday, -20, 10) // start not okay
+	time, err = makeTime(20, 69) // minute not okay
 	fmt.Printf("time: %v, err: %v\n", time, err)
 
-	time, err = makeTime(Sunday, 20, 24.2) // end not okay
-	fmt.Printf("time: %v, err: %v\n", time, err)
-
-	time, err = makeTime(Sunday, 20, 19) // ends before it begins
-	fmt.Printf("time: %v, err: %v\n", time, err)
-
-	time = forceTime(Sunday, 20, 19) // default value
+	time = forceTime(26, 19) // default value
 	fmt.Printf("time: %v", time)
 }
