@@ -1,6 +1,8 @@
 package main
 
-import "strconv"
+import (
+	"strconv"
+)
 
 // hard feltételek:
 // ne legyen óra ütközés
@@ -9,24 +11,20 @@ import "strconv"
 // lyukas óra minimalizálás
 
 func main() {
-	var subjects = ReadSubjects("test_inputs/test_a.json")
+	for i := 0; i < 1; i++ {
+		var courseGraph = CourseGraph{}
+		courseGraph.BuildGraph(ReadSubjects("test_inputs/test_a.json"))
 
-	for i := 0; i < len(subjects); i++ {
-		println("")
-		println("Subject name: " + subjects[i].Name)
-		println("Subject code: " + subjects[i].Code)
-		println("Subject Courses:")
-		for j := 0; j < len(subjects[i].Courses); j++ {
-			println("\tCourse code: " + subjects[i].Courses[j].Code)
-			println("\tCourse type: " + strconv.Itoa(subjects[i].Courses[j].Type.ordinal()))
-			println("\tCourse Day: " + strconv.Itoa(subjects[i].Courses[j].Time.Day.ordinal()))
-			println("\tCourse Start: " + strconv.FormatFloat(float64(subjects[i].Courses[j].Time.Start), 'g', 2, 32))
-			println("\tCourse End: " + strconv.FormatFloat(float64(subjects[i].Courses[j].Time.End), 'g', 2, 32))
-			println("\tCourse Location: " + subjects[i].Courses[j].Location)
-			println("\tCourse Instructor: " + subjects[i].Courses[j].Instructor)
+		var scheduledCourses = CreateScheduleFromScratch(&courseGraph).Elements()
+
+		println("Felvett kurzusok száma: " + strconv.Itoa(len(scheduledCourses)))
+		for _, course := range scheduledCourses {
+			println("\tTárgy neve: " + course.Course.Subject.Name)
+			println("\tKurzuskód: " + course.Course.Code)
+			println("\tNap: " + strconv.Itoa(course.Course.Time.Day.ordinal()))
+			println("\tKezdés: " + strconv.FormatFloat(float64(course.Course.Time.Start), 'g', 4, 32))
+			println("\tVégzés: " + strconv.FormatFloat(float64(course.Course.Time.End), 'g', 4, 32))
 			println("")
 		}
-		println("")
 	}
-
 }

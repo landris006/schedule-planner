@@ -6,6 +6,7 @@ type Set[T comparable] interface {
 	Elements() []T
 	Union(o Set[T]) Set[T]
 	Intersection(o Set[T]) Set[T]
+	Size() int
 }
 
 type set[T comparable] struct {
@@ -32,7 +33,7 @@ func (_set set[T]) Elements() []T {
 }
 
 func (_set set[T]) Union(o Set[T]) Set[T] {
-	var out = CreateSet[T]()
+	var out = EmptySet[T]()
 
 	for k := range _set.storage {
 		out.Insert(k)
@@ -45,7 +46,7 @@ func (_set set[T]) Union(o Set[T]) Set[T] {
 }
 
 func (_set set[T]) Intersection(o Set[T]) Set[T] {
-	var out = CreateSet[T]()
+	var out = EmptySet[T]()
 
 	for _, k := range o.Elements() {
 		_, ok := _set.storage[k]
@@ -57,6 +58,19 @@ func (_set set[T]) Intersection(o Set[T]) Set[T] {
 	return out
 }
 
-func CreateSet[T comparable]() Set[T] {
+func (_set set[T]) Size() int {
+	return len(_set.storage)
+}
+
+func EmptySet[T comparable]() Set[T] {
 	return set[T]{make(map[T]struct{})}
+}
+
+// Nincsen function overload :(
+func CreateSet[T comparable](elements ...T) Set[T] {
+	var _set = set[T]{make(map[T]struct{})}
+	for _, element := range elements {
+		_set.Insert(element)
+	}
+	return _set
 }

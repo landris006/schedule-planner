@@ -64,6 +64,42 @@ type subjects struct {
 	Subjects []*Subject `json:"subjects"`
 }
 
+func (course_a *Course) OverlapsWith(course_b *Course) bool {
+	//Egy tárgyhoz csak egy gyakorlatot vegyünk fel!
+	if course_a.Subject == course_b.Subject && course_a.Type == course_b.Type {
+		return true
+	}
+
+	if course_a.Time.Day == course_b.Time.Day {
+		//Leggyakrabban amikor ütköznek, akkor pont ugyanakkor kezdődnek és végződnek
+		if course_a.Time.Start == course_b.Time.Start && course_a.Time.End == course_b.Time.End {
+			return true
+		}
+
+		//A többi esetben akkor ütközik, ha az egyiknek valamelyik végpontja a másik végpontjai közé esik
+		//Mindkettőnek meg kel nézni, mert lehet, hogy az egyik óra rövidebb, mint a másik
+		if course_a.Time.Start > course_b.Time.Start && course_a.Time.Start < course_b.Time.End {
+			return true
+		}
+		if course_a.Time.End > course_b.Time.Start && course_a.Time.End < course_b.Time.End {
+			return true
+		}
+		if course_b.Time.Start > course_a.Time.Start && course_b.Time.Start < course_a.Time.End {
+			return true
+		}
+		if course_b.Time.End > course_a.Time.Start && course_b.Time.End < course_a.Time.End {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Ide majd később kerülnek a kurzusra vonatkozó szűrők
+func (course *Course) BreaksNoRules() bool {
+	return true
+}
+
 // https://tutorialedge.net/golang/parsing-json-with-golang/
 func ReadSubjects(filepath string) []*Subject {
 	// Open our jsonFile
