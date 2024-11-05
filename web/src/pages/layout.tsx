@@ -15,7 +15,7 @@ export default function Layout() {
         <div className="navbar-center hidden lg:flex">
           <ul className="menu menu-horizontal gap-1 p-0 text-lg">
             <li>
-              <NavLink to="/courses">{labels.COURSES}</NavLink>
+              <NavLink to="/subjects">{labels.SUBJECTS}</NavLink>
             </li>
             <li>
               <NavLink to="/planner">{labels.PLANNER}</NavLink>
@@ -70,7 +70,7 @@ function MobileNav() {
         className="menu dropdown-content menu-sm z-[1] mt-3 w-52 rounded-box bg-base-200 p-2 shadow-2xl"
       >
         <li>
-          <NavLink to="/courses">{labels.COURSES}</NavLink>
+          <NavLink to="/subjects">{labels.SUBJECTS}</NavLink>
         </li>
         <li>
           <NavLink to="/planner">{labels.PLANNER}</NavLink>

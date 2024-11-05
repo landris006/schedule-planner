@@ -4,16 +4,16 @@ import Button from '@/components/button';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import { useLabel } from '@/contexts/label/label-context';
 
-export default function Courses() {
+export default function Subjects() {
   const { labels } = useLabel();
   const {
-    data: courses,
+    data: subjects,
     isLoading,
     isError,
     isSuccess,
     ...courseQuery
   } = useQuery({
-    fetcher: (opts: QueryOptions) => scrapeClasses(opts).then(parseCourses),
+    fetcher: (opts: QueryOptions) => scrapeCouses(opts).then(parseSubjects),
   });
 
   const [formState, setFormState] = useState<QueryOptions>({
@@ -127,11 +127,11 @@ export default function Courses() {
 
       <div className="flex flex-col gap-4">
         {isError && <p>{labels.ERROR}...</p>}
-        {isSuccess && !courses?.length && <p>{labels.NO_RECORDS_FOUND}</p>}
+        {isSuccess && !subjects?.length && <p>{labels.NO_RECORDS_FOUND}</p>}
 
-        {courses?.map((course) => {
-          const lectures = course.classes.filter((c) => c.type === 'lecture');
-          const practices = course.classes.filter((c) => c.type === 'practice');
+        {subjects?.map((course) => {
+          const lectures = course.courses.filter((c) => c.type === 'lecture');
+          const practices = course.courses.filter((c) => c.type === 'practice');
 
           return (
             <div className="card" key={course.code}>
@@ -146,16 +146,16 @@ export default function Courses() {
                       {lectures.length > 1 ? labels.LECTURES : labels.LECTURE}
                     </h2>
                     <div>
-                      {lectures.map((classItem) => (
+                      {lectures.map((course) => (
                         <ClassCard
                           key={
-                            classItem.code +
-                            classItem.time?.day +
-                            classItem.time?.start +
-                            classItem.place +
-                            classItem.instructor
+                            course.code +
+                            course.time?.day +
+                            course.time?.start +
+                            course.place +
+                            course.instructor
                           }
-                          classItem={classItem}
+                          course={course}
                         />
                       ))}
                     </div>
@@ -170,16 +170,16 @@ export default function Courses() {
                         : labels.PRACTICE}
                     </h2>
                     <div className="flex flex-col gap-1">
-                      {practices.map((classItem) => (
+                      {practices.map((course) => (
                         <ClassCard
                           key={
-                            classItem.code +
-                            classItem.time?.day +
-                            classItem.time?.start +
-                            classItem.place +
-                            classItem.instructor
+                            course.code +
+                            course.time?.day +
+                            course.time?.start +
+                            course.place +
+                            course.instructor
                           }
-                          classItem={classItem}
+                          course={course}
                         />
                       ))}
                     </div>
@@ -194,17 +194,16 @@ export default function Courses() {
   );
 }
 
-function ClassCard({ classItem }: { classItem: Class }) {
+function ClassCard({ course }: { course: Course }) {
   const { labels } = useLabel();
-  const [code, _] = classItem.code.split(' ');
+  const [code, _] = course.code.split(' ');
   const classNumber =
-    classItem.type === 'practice' &&
-    code.split('-')[code.split('-').length - 1];
+    course.type === 'practice' && code.split('-')[code.split('-').length - 1];
 
   return (
     <div className="rounded-md bg-base-100 p-3">
       <h2 className="text-lg font-bold">
-        {classItem.type === 'lecture'
+        {course.type === 'lecture'
           ? labels.LECTURE
           : `${labels.PRACTICE} ${classNumber}.`}
       </h2>
@@ -213,25 +212,23 @@ function ClassCard({ classItem }: { classItem: Class }) {
         <span>{code}</span>
 
         <span className="font-bold">{labels.INSTRUCTOR}:</span>
-        <span>{classItem.instructor}</span>
+        <span>{course.instructor}</span>
 
         <>
           <span className="font-bold">{labels.DAY}:</span>
-          <span>{classItem.time?.day ?? '-'}</span>
+          <span>{course.time?.day ?? '-'}</span>
 
           <span className="font-bold">{labels.TIME}:</span>
           <span>
-            {classItem.time
-              ? `${classItem.time.start}-${classItem.time.end}`
-              : '-'}
+            {course.time ? `${course.time.start}-${course.time.end}` : '-'}
           </span>
         </>
 
         <span className="font-bold">{labels.PLACE}:</span>
-        <span>{classItem.place}</span>
+        <span>{course.place}</span>
 
         <span className="font-bold">{labels.CAPACITY}:</span>
-        <span>{classItem.capacity}</span>
+        <span>{course.capacity}</span>
       </div>
     </div>
   );
@@ -256,13 +253,13 @@ type QueryOptions = {
   semester: string;
 };
 
-export type Course = {
+export type Subject = {
   code: string;
   name: string;
-  classes: Class[];
+  courses: Course[];
 };
 
-type Class = {
+type Course = {
   time?: Time;
   code: string;
   instructor: string;
@@ -284,7 +281,7 @@ const COURSE_TYPE_MAP = {
   '(practice)': 'practice',
 } as const;
 
-async function scrapeClasses(queryOptions: QueryOptions): Promise<string> {
+async function scrapeCouses(queryOptions: QueryOptions): Promise<string> {
   const query = new URLSearchParams({
     m: queryOptions.mode,
     k: queryOptions.term,
@@ -300,8 +297,8 @@ async function scrapeClasses(queryOptions: QueryOptions): Promise<string> {
   return fetch(req).then((res) => res.text());
 }
 
-function parseCourses(htmlString: string) {
-  const courses = new Map<string, Course>();
+function parseSubjects(htmlString: string) {
+  const subjects = new Map<string, Subject>();
 
   const doc = new DOMParser().parseFromString(htmlString, 'text/html');
 
@@ -331,17 +328,17 @@ function parseCourses(htmlString: string) {
 
     const split = code.split('-');
     split.pop();
-    const courseCode = split.join('-');
+    const subjectCode = split.join('-');
 
-    let course = courses.get(courseCode);
-    if (!course) {
-      courses.set(courseCode, {
-        code: courseCode,
+    let subject = subjects.get(subjectCode);
+    if (!subject) {
+      subjects.set(subjectCode, {
+        code: subjectCode,
         name: name,
-        classes: [],
+        courses: [],
       });
     }
-    course = courses.get(courseCode)!;
+    subject = subjects.get(subjectCode)!;
 
     const mappedType = COURSE_TYPE_MAP[type as keyof typeof COURSE_TYPE_MAP];
     if (!mappedType) {
@@ -350,7 +347,7 @@ function parseCourses(htmlString: string) {
 
     const time = parseTime(timeString);
 
-    const classItem: Class = {
+    const course: Course = {
       code: code,
       instructor,
       time,
@@ -359,18 +356,18 @@ function parseCourses(htmlString: string) {
       type: mappedType,
     };
 
-    const alreadyExists = course.classes.find(
-      // the classItems we are checking are constructed the same way (same order of keys) so this should be fine
-      (c) => JSON.stringify(c) === JSON.stringify(classItem),
+    const alreadyExists = subject.courses.find(
+      // the courses that we are checking are constructed the same way (same order of keys) so this comparison should be fine
+      (c) => JSON.stringify(c) === JSON.stringify(course),
     );
 
     if (!alreadyExists) {
-      course.classes.push(classItem);
+      subject.courses.push(course);
     }
   });
 
-  return Array.from(courses.values()).filter(
-    (course) => course.classes.length > 0,
+  return Array.from(subjects.values()).filter(
+    (course) => course.courses.length > 0,
   );
 }
 

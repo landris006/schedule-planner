@@ -163,20 +163,16 @@ export const labels = {
     en: 'Unprocessable request',
   },
   COURSE: {
-    hu: 'Tantárgy',
+    hu: 'Óra',
     en: 'Course',
   },
-  COURSES: {
+  SUBJECTS: {
     hu: 'Tantárgyak',
-    en: 'Courses',
+    en: 'Subjects',
   },
   PLANNER: {
     hu: 'Tervező',
     en: 'Planner',
-  },
-  CLASS: {
-    hu: 'Óra',
-    en: 'Class',
   },
   SEMESTER: {
     hu: 'Szemeszter',
