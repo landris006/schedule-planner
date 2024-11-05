@@ -147,7 +147,7 @@ export default function Subjects() {
                     </h2>
                     <div>
                       {lectures.map((course) => (
-                        <ClassCard
+                        <CourseCard
                           key={
                             course.code +
                             course.time?.day +
@@ -171,7 +171,7 @@ export default function Subjects() {
                     </h2>
                     <div className="flex flex-col gap-1">
                       {practices.map((course) => (
-                        <ClassCard
+                        <CourseCard
                           key={
                             course.code +
                             course.time?.day +
@@ -194,8 +194,18 @@ export default function Subjects() {
   );
 }
 
-function ClassCard({ course }: { course: Course }) {
+function CourseCard({ course }: { course: Course }) {
   const { labels } = useLabel();
+  const days = [
+    labels.MONDAY,
+    labels.TUESDAY,
+    labels.WEDNESDAY,
+    labels.THURSDAY,
+    labels.FRIDAY,
+    labels.SATURDAY,
+    labels.SUNDAY,
+  ];
+
   const [code, _] = course.code.split(' ');
   const classNumber =
     course.type === 'practice' && code.split('-')[code.split('-').length - 1];
@@ -216,11 +226,13 @@ function ClassCard({ course }: { course: Course }) {
 
         <>
           <span className="font-bold">{labels.DAY}:</span>
-          <span>{course.time?.day ?? '-'}</span>
+          <span>{course.time?.day ? days[course.time.day] : '-'}</span>
 
           <span className="font-bold">{labels.TIME}:</span>
           <span>
-            {course.time ? `${course.time.start}-${course.time.end}` : '-'}
+            {course.time
+              ? `${floatToHHMM(course.time.start)}-${floatToHHMM(course.time.end)}`
+              : '-'}
           </span>
         </>
 
@@ -407,4 +419,10 @@ function parseTime(timeString: string): Time | undefined {
 function hhmmToFloat(hhmm: string) {
   const [hour, minute] = hhmm.split(':');
   return parseFloat(hour) + parseFloat(minute) / 60;
+}
+
+function floatToHHMM(float: number) {
+  const hour = Math.floor(float);
+  const minute = Math.floor((float - hour) * 60);
+  return `${hour}:${minute.toString().padStart(2, '0')}`;
 }

@@ -270,6 +270,34 @@ export const labels = {
     hu: 'Oktató kódja',
     en: 'Instructor code',
   },
+  MONDAY: {
+    hu: 'Hétfő',
+    en: 'Monday',
+  },
+  TUESDAY: {
+    hu: 'Kedd',
+    en: 'Tuesday',
+  },
+  WEDNESDAY: {
+    hu: 'Szerda',
+    en: 'Wednesday',
+  },
+  THURSDAY: {
+    hu: 'Csütörtök',
+    en: 'Thursday',
+  },
+  FRIDAY: {
+    hu: 'Péntek',
+    en: 'Friday',
+  },
+  SATURDAY: {
+    hu: 'Szombat',
+    en: 'Saturday',
+  },
+  SUNDAY: {
+    hu: 'Vasárnap',
+    en: 'Sunday',
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type Labels = typeof labels;
