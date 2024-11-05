@@ -1,16 +1,16 @@
-import { Subject } from '@/pages/subjects';
+import { Subject } from '@/contexts/subjects/subjects-context';
 import { create } from 'zustand';
 
 type PlannerState = {
   courses: Subject[];
-  saveCourse: (course: Subject) => void;
+  saveCourse: (subject: Subject) => void;
 };
 
 export const usePlannerStore = create<PlannerState>((set) => ({
   courses: [],
-  saveCourse: (course) => {
+  saveCourse: (subject) => {
     set((state) => ({
-      courses: [...state.courses, course],
+      courses: [...state.courses, subject],
     }));
   },
 }));
