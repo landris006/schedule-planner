@@ -64,3 +64,9 @@ export function parseCookie(cookieString: string): Record<string, string> {
 
   return parsedCookie;
 }
+
+export function floatToHHMM(float: number) {
+  const hour = Math.floor(float);
+  const minute = Math.floor((float - hour) * 60);
+  return `${hour}:${minute.toString().padStart(2, '0')}`;
+}

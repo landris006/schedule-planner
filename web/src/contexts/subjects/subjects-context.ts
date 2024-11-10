@@ -1,17 +1,25 @@
 import { useQuery } from '@/utils';
-import { createContext, useContext } from 'react';
+import { Dispatch, SetStateAction, createContext, useContext } from 'react';
 
 export type QueryOptions = {
   term: string;
-  mode: SearchModes;
+  mode: (typeof SEARCH_MODES)[number];
   semester: string;
 };
 
-export type SearchModes =
-  | 'keresnevre'
-  | 'keres_kod_azon'
-  | 'keres_okt'
-  | 'keres_oktnk';
+export const SEARCH_MODES = [
+  'keresnevre',
+  'keres_kod_azon',
+  'keres_okt',
+  'keres_oktnk',
+] as const;
+
+const year = new Date().getFullYear();
+export const SEMESTERS: string[] = Array.from(
+  { length: 6 },
+  (_, i) =>
+    `${year - Math.round(i / 2)}-${year + 1 - Math.round(i / 2)}-${(i % 2) + 1}`, // 🤮
+);
 
 export type Subject = {
   code: string;
@@ -36,6 +44,12 @@ export type Time = {
 
 type SubjectsContextType = {
   subjectsQuery: ReturnType<typeof useQuery<Subject[], QueryOptions>>;
+  searchTerm: string;
+  setSearchTerm: Dispatch<SetStateAction<string>>;
+  searchMode: (typeof SEARCH_MODES)[number];
+  setSearchMode: (value: (typeof SEARCH_MODES)[number]) => void;
+  semester: (typeof SEMESTERS)[number];
+  setSemester: (value: (typeof SEMESTERS)[number]) => void;
 };
 
 export const SubjectsContext = createContext<SubjectsContextType | undefined>(

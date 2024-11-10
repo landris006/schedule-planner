@@ -1,8 +1,9 @@
 import { useLabel } from '@/contexts/label/label-context';
 import { Locale, localeOptions } from '@/contexts/label/labels';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 export default function Layout() {
+  const { search } = useLocation();
   const { locale, setLocale, labels } = useLabel();
 
   return (
@@ -15,10 +16,24 @@ export default function Layout() {
         <div className="navbar-center hidden lg:flex">
           <ul className="menu menu-horizontal gap-1 p-0 text-lg">
             <li>
-              <NavLink to="/subjects">{labels.SUBJECTS}</NavLink>
+              <NavLink
+                to={{
+                  pathname: '/subjects',
+                  search,
+                }}
+              >
+                {labels.SUBJECTS}
+              </NavLink>
             </li>
             <li>
-              <NavLink to="/planner">{labels.PLANNER}</NavLink>
+              <NavLink
+                to={{
+                  pathname: '/planner',
+                  search,
+                }}
+              >
+                {labels.PLANNER}
+              </NavLink>
             </li>
           </ul>
         </div>

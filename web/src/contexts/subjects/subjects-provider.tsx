@@ -1,11 +1,14 @@
 import {
   Course,
   QueryOptions,
+  SEMESTERS,
+  SEARCH_MODES,
   Subject,
   SubjectsContext,
   Time,
 } from '@/contexts/subjects/subjects-context';
 import { useQuery } from '@/utils';
+import { useQueryState } from 'nuqs';
 
 export default function SubjectsProvider({
   children,
@@ -15,10 +18,33 @@ export default function SubjectsProvider({
   const subjectsQuery = useQuery({
     fetcher: (opts: QueryOptions) => scrapeCouses(opts).then(parseSubjects),
   });
+
+  const [searchTerm, setSearchTerm] = useQueryState('q', { defaultValue: '' });
+  const [searchMode, setSearchMode] = useQueryState('mode', {
+    parse: (value) => SEARCH_MODES.find((v) => v === value) ?? SEARCH_MODES[0],
+    defaultValue: 'keresnevre',
+  });
+  const [semester, setSemester] = useQueryState('semester', {
+    defaultValue: SEMESTERS[0],
+    parse: (value) => SEMESTERS.find((v) => v === value) ?? SEMESTERS[0],
+  });
+
   return (
     <SubjectsContext.Provider
       value={{
         subjectsQuery,
+        searchTerm,
+        setSearchTerm,
+        searchMode: searchMode as (typeof SEARCH_MODES)[number], // cast is only safe because of the checks in `parse` and `setSearchMode`
+        setSearchMode: (value: (typeof SEARCH_MODES)[number]) =>
+          SEARCH_MODES.find((v) => v === value)
+            ? setSearchMode(value)
+            : setSearchMode(SEARCH_MODES[0]),
+        semester: semester as (typeof SEMESTERS)[number], // cast is only safe because of the checks in `parse` and `setSemester`
+        setSemester: (value: (typeof SEMESTERS)[number]) =>
+          SEMESTERS.find((v) => v === value)
+            ? setSemester(value)
+            : setSemester(SEMESTERS[0]),
       }}
     >
       {children}

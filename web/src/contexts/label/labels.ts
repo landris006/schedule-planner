@@ -298,6 +298,14 @@ export const labels = {
     hu: 'Vasárnap',
     en: 'Sunday',
   },
+  ADD_TO_PLANNER: {
+    hu: 'Tervezőhöz adás',
+    en: 'Add to planner',
+  },
+  REMOVE_FROM_PLANNER: {
+    hu: 'Eltávolítás a tervezőből',
+    en: 'Remove from planner',
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type Labels = typeof labels;

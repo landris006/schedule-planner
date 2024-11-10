@@ -1,13 +1,19 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import Button from '@/components/button';
-import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import {
+  MagnifyingGlassIcon,
+  MinusIcon,
+  PlusIcon,
+} from '@radix-ui/react-icons';
 import { useLabel } from '@/contexts/label/label-context';
 import {
   Course,
-  QueryOptions,
-  SearchModes,
+  SEARCH_MODES,
+  SEMESTERS,
   useSubjects,
 } from '@/contexts/subjects/subjects-context';
+import { usePlannerStore } from '@/stores/planner';
+import { floatToHHMM } from '@/utils';
 
 export default function Subjects() {
   const { labels } = useLabel();
@@ -19,19 +25,19 @@ export default function Subjects() {
       isSuccess,
       ...subjectsQuery
     },
+    ...subjectsContext
   } = useSubjects();
-
-  const [formState, setFormState] = useState<QueryOptions>({
-    term: '',
-    mode: 'keresnevre',
-    semester: semesters[0],
-  });
+  const {
+    subjects: savedSubjects,
+    addSubject,
+    removeSubject,
+  } = usePlannerStore();
 
   const input = useRef<HTMLInputElement>(null);
 
   const searchModeOptions: {
     label: string;
-    value: SearchModes;
+    value: (typeof SEARCH_MODES)[number];
   }[] = useMemo(
     () => [
       {
@@ -62,15 +68,10 @@ export default function Subjects() {
             <label htmlFor="name">{labels.SEMESTER}</label>
             <select
               className="select select-bordered w-full max-w-xs"
-              value={formState.semester}
-              onChange={(e) =>
-                setFormState((prev) => ({
-                  ...prev,
-                  semester: e.target.value,
-                }))
-              }
+              value={subjectsContext.semester}
+              onChange={(e) => subjectsContext.setSemester(e.target.value)}
             >
-              {semesters.map((semester) => (
+              {SEMESTERS.map((semester) => (
                 <option value={semester} key={semester}>
                   {semester}
                 </option>
@@ -82,12 +83,11 @@ export default function Subjects() {
             <label htmlFor="name">{labels.MODE}</label>
             <select
               className="select select-bordered w-full max-w-xs"
-              value={formState.mode}
+              value={subjectsContext.searchMode}
               onChange={(e) =>
-                setFormState((prev) => ({
-                  ...prev,
-                  mode: e.target.value as SearchModes,
-                }))
+                subjectsContext.setSearchMode(
+                  e.target.value as (typeof SEARCH_MODES)[number], // TODO: make custom type safe select
+                )
               }
             >
               {searchModeOptions.map((mode) => (
@@ -103,10 +103,8 @@ export default function Subjects() {
 
           <input
             ref={input}
-            value={formState.term}
-            onChange={(e) =>
-              setFormState((prev) => ({ ...prev, term: e.target.value }))
-            }
+            value={subjectsContext.searchTerm}
+            onChange={(e) => subjectsContext.setSearchTerm(e.target.value)}
             id="name"
             className="input input-bordered"
             type="text"
@@ -117,7 +115,7 @@ export default function Subjects() {
           label="Search"
           type="submit"
           className="btn-primary"
-          disabled={!formState.term}
+          disabled={!subjectsContext.searchTerm}
           isLoading={isLoading}
           icon={<MagnifyingGlassIcon width={20} height={20} />}
           onClick={(e) => {
@@ -125,7 +123,11 @@ export default function Subjects() {
             if (subjectsQuery.status === 'loading') {
               return;
             }
-            subjectsQuery.fetch(formState);
+            subjectsQuery.fetch({
+              term: subjectsContext.searchTerm,
+              mode: subjectsContext.searchMode,
+              semester: subjectsContext.semester,
+            });
           }}
         />
       </form>
@@ -134,16 +136,36 @@ export default function Subjects() {
         {isError && <p>{labels.ERROR}...</p>}
         {isSuccess && !subjects?.length && <p>{labels.NO_RECORDS_FOUND}</p>}
 
-        {subjects?.map((course) => {
-          const lectures = course.courses.filter((c) => c.type === 'lecture');
-          const practices = course.courses.filter((c) => c.type === 'practice');
+        {subjects?.map((subject) => {
+          const lectures = subject.courses.filter((c) => c.type === 'lecture');
+          const practices = subject.courses.filter(
+            (c) => c.type === 'practice',
+          );
+
+          const isSaved = savedSubjects.find((s) => s.code === subject.code);
 
           return (
-            <div className="card" key={course.code}>
+            <div className="card" key={subject.code}>
               <div className="card-body rounded-md bg-base-200">
                 <h2 className="card-title">
-                  {course.name} ({course.code})
+                  {subject.name} ({subject.code})
                 </h2>
+
+                {isSaved ? (
+                  <Button
+                    className="btn btn-outline btn-error w-min text-nowrap"
+                    label={labels.REMOVE_FROM_PLANNER}
+                    icon={<MinusIcon width={20} height={20} />}
+                    onClick={() => removeSubject(subject)}
+                  />
+                ) : (
+                  <Button
+                    className="btn btn-outline btn-success w-min text-nowrap"
+                    label={labels.ADD_TO_PLANNER}
+                    icon={<PlusIcon width={20} height={20} />}
+                    onClick={() => addSubject(subject)}
+                  />
+                )}
 
                 {lectures.length > 0 && (
                   <>
@@ -249,17 +271,4 @@ function CourseCard({ course }: { course: Course }) {
       </div>
     </div>
   );
-}
-
-const year = new Date().getFullYear();
-const semesters: string[] = Array.from(
-  { length: 6 },
-  (_, i) =>
-    `${year - Math.round(i / 2)}-${year + 1 - Math.round(i / 2)}-${(i % 2) + 1}`, // 🤮
-);
-
-function floatToHHMM(float: number) {
-  const hour = Math.floor(float);
-  const minute = Math.floor((float - hour) * 60);
-  return `${hour}:${minute.toString().padStart(2, '0')}`;
 }
