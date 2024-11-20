@@ -22,12 +22,6 @@ func CalculateStartNode(pickedCourses Set[*CourseNode], allCourses Set[*CourseNo
 	return node
 }
 
-// Ide lehet majd a vágásokat beletenni (ha lesznek)
-// Ha később egyszerre akarjuk az órarendbe tenni egy adott tárgy előadását és gyakorlatát, akkor több elemet is megadhatunk
-func (schedule *ScheduleNode) Cut(pickedCourses []*CourseNode) bool {
-	return false
-}
-
 // Ha így meg tudnánk adni az összes feltételt, akkor szerintem nem is kellene az összeset összehasonlítani (?)
 func (schedule *ScheduleNode) EvaluatePick(pickedCourses []*CourseNode) int64 {
 	var sum = 0
@@ -56,21 +50,19 @@ func (schedule *ScheduleNode) EvaluatePick(pickedCourses []*CourseNode) int64 {
 	return int64(sum)
 }
 
-func ExtendSchedule(pickedCourses Set[*CourseNode], allCourses Set[*CourseNode]) Set[*CourseNode] {
+func QuickExtendSchedule(pickedCourses Set[*CourseNode], allCourses Set[*CourseNode]) Set[*CourseNode] {
 	var schedule = CalculateStartNode(pickedCourses, allCourses)
 	for schedule.PickableCourses.Size() > 0 {
 		//Kiértékelések
 		var bestValue = int64(math.Inf(-1))
 		var bestElements = []*CourseNode{}
 		for _, node := range schedule.PickableCourses.Elements() {
-			if !schedule.Cut([]*CourseNode{node}) {
-				var value = schedule.EvaluatePick([]*CourseNode{node})
-				if value > bestValue {
-					bestValue = value
-					bestElements = []*CourseNode{node}
-				} else if value == bestValue {
-					bestElements = append(bestElements, node)
-				}
+			var value = schedule.EvaluatePick([]*CourseNode{node})
+			if value > bestValue {
+				bestValue = value
+				bestElements = []*CourseNode{node}
+			} else if value == bestValue {
+				bestElements = append(bestElements, node)
 			}
 		}
 		//A legjobbak közül egy random kiválasztása
@@ -86,7 +78,7 @@ func ExtendSchedule(pickedCourses Set[*CourseNode], allCourses Set[*CourseNode])
 	return schedule.PickedCourses
 }
 
-func CreateScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
+func CreateQuickScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
 	var schedule = ScheduleNode{EmptySet[*CourseNode](), CreateSet(graph.Nodes...)}
 
 	for schedule.PickableCourses.Size() > 0 {
@@ -95,14 +87,12 @@ func CreateScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
 		var bestElements = []*CourseNode{}
 
 		for _, node := range schedule.PickableCourses.Elements() {
-			if !schedule.Cut([]*CourseNode{node}) {
-				var value = schedule.EvaluatePick([]*CourseNode{node})
-				if value > bestValue {
-					bestValue = value
-					bestElements = []*CourseNode{node}
-				} else if value == bestValue {
-					bestElements = append(bestElements, node)
-				}
+			var value = schedule.EvaluatePick([]*CourseNode{node})
+			if value > bestValue {
+				bestValue = value
+				bestElements = []*CourseNode{node}
+			} else if value == bestValue {
+				bestElements = append(bestElements, node)
 			}
 		}
 		//A legjobbak közül egy random kiválasztása
@@ -117,4 +107,26 @@ func CreateScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
 	}
 
 	return schedule.PickedCourses
+}
+
+func BK(clique Set[*CourseNode], available_vertices Set[*CourseNode], excluded_vertices Set[*CourseNode], cliques *[]ScheduleNode) {
+	if available_vertices.Union(excluded_vertices).IsEmpty() {
+		*cliques = append(*cliques, ScheduleNode{clique, EmptySet[*CourseNode]()})
+	}
+
+	//TODO: pivot pont
+	for _, vertex := range available_vertices.Elements() {
+		BK(clique.Union(CreateSet(vertex)), available_vertices.Intersection(vertex.Neighbors), excluded_vertices.Intersection(vertex.Neighbors), cliques)
+		available_vertices = available_vertices.Minus(CreateSet(vertex))
+		excluded_vertices.Insert(vertex)
+	}
+}
+
+func CreateScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
+	//https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm
+	max_cliques := []ScheduleNode{}
+	BK(EmptySet[*CourseNode](), CreateSet(graph.Nodes...), EmptySet[*CourseNode](), &max_cliques)
+
+	//TODO: Maximum-keresés
+	return max_cliques[0].PickedCourses
 }

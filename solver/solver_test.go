@@ -23,5 +23,17 @@ func TestSolver(t *testing.T) {
 			println("\tVégzés: " + strconv.FormatFloat(float64(course.Course.Time.End), 'g', 4, 32))
 			println("")
 		}
+
+		scheduledCourses = CreateQuickScheduleFromScratch(&courseGraph).Elements()
+
+		println("Felvett kurzusok száma: " + strconv.Itoa(len(scheduledCourses)))
+		for _, course := range scheduledCourses {
+			println("\tTárgy neve: " + course.Course.Subject.Name)
+			println("\tKurzuskód: " + course.Course.Code)
+			println("\tNap: " + strconv.Itoa(course.Course.Time.Day.ordinal()))
+			println("\tKezdés: " + strconv.FormatFloat(float64(course.Course.Time.Start), 'g', 4, 32))
+			println("\tVégzés: " + strconv.FormatFloat(float64(course.Course.Time.End), 'g', 4, 32))
+			println("")
+		}
 	}
 }

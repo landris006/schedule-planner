@@ -6,7 +6,9 @@ type Set[T comparable] interface {
 	Elements() []T
 	Union(o Set[T]) Set[T]
 	Intersection(o Set[T]) Set[T]
+	Minus(o Set[T]) Set[T]
 	Size() int
+	IsEmpty() bool
 }
 
 type set[T comparable] struct {
@@ -58,8 +60,24 @@ func (_set set[T]) Intersection(o Set[T]) Set[T] {
 	return out
 }
 
+func (_set set[T]) Minus(o Set[T]) Set[T] {
+	var out = EmptySet[T]()
+
+	for _, k := range _set.Elements() {
+		if !o.Contains(k) {
+			out.Insert(k)
+		}
+	}
+
+	return out
+}
+
 func (_set set[T]) Size() int {
 	return len(_set.storage)
+}
+
+func (_set set[T]) IsEmpty() bool {
+	return _set.Size() == 0
 }
 
 func EmptySet[T comparable]() Set[T] {
