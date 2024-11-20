@@ -50,6 +50,52 @@ func (schedule *ScheduleNode) EvaluatePick(pickedCourses []*CourseNode) int64 {
 	return int64(sum)
 }
 
+func (schedule *ScheduleNode) Value() float64 {
+	var size_factor = 2.0
+	var hole_factor = 1.0
+
+	var sum = size_factor * float64(schedule.PickedCourses.Size())
+
+	//Lyukasórák számolása a nem fedett végpontok alapján
+	days := EmptySet[int]()
+	endPoints := EmptySet[float32]()
+	invalidCourses := EmptySet[*CourseNode]()
+	excludedCourses := EmptySet[*CourseNode]()
+
+	//Szűrjük ki azokat az órákat, amik ütköznének, ha nem lenne megengedett az ütközés
+	for _, course1 := range schedule.PickedCourses.Elements() {
+		//Ha megengedtük az ütközést, akkor biztosan a szomszédai között van
+		for _, course2 := range course1.Neighbors.Minus(excludedCourses).Elements() {
+			if course1.Course.Time.Start <= course2.Course.Time.Start && course1.Course.Time.End >= course2.Course.Time.End {
+				invalidCourses.Insert(course2)
+			} else if course1.Course.Time.Start > course2.Course.Time.Start && course1.Course.Time.End < course2.Course.Time.End {
+				invalidCourses.Insert(course1)
+			}
+			//Ne vizsgáljuk többször azokat, amiket már megvizsgáltunk
+			excludedCourses.Insert(course1)
+		}
+	}
+
+	for _, course := range schedule.PickedCourses.Minus(invalidCourses).Elements() {
+		days.Insert(course.Course.Time.Day.ordinal())
+		if endPoints.Contains(course.Course.Time.Start) {
+			endPoints.Remove(course.Course.Time.Start)
+		} else {
+			endPoints.Insert(course.Course.Time.Start)
+		}
+		if endPoints.Contains(course.Course.Time.End) {
+			endPoints.Remove(course.Course.Time.End)
+		} else {
+			endPoints.Insert(course.Course.Time.End)
+		}
+	}
+
+	//Ha minden igaz, itt az endPoints.Size()-nak muszáj párosnak lennie
+	sum -= hole_factor * float64(days.Size()-(endPoints.Size()/2))
+
+	return float64(sum)
+}
+
 func QuickExtendSchedule(pickedCourses Set[*CourseNode], allCourses Set[*CourseNode]) Set[*CourseNode] {
 	var schedule = CalculateStartNode(pickedCourses, allCourses)
 	for schedule.PickableCourses.Size() > 0 {
@@ -127,6 +173,19 @@ func CreateScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
 	max_cliques := []ScheduleNode{}
 	BK(EmptySet[*CourseNode](), CreateSet(graph.Nodes...), EmptySet[*CourseNode](), &max_cliques)
 
-	//TODO: Maximum-keresés
-	return max_cliques[0].PickedCourses
+	var bestValue = float64(math.Inf(-1))
+	var bestElements = []ScheduleNode{}
+
+	for _, schedule := range max_cliques {
+		var value = schedule.Value()
+		if value > bestValue {
+			bestValue = value
+			bestElements = []ScheduleNode{schedule}
+		} else if value == bestValue {
+			bestElements = append(bestElements, schedule)
+		}
+	}
+
+	randomIndex := rand.Intn(len(bestElements))
+	return bestElements[randomIndex].PickedCourses
 }
