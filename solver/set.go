@@ -2,6 +2,7 @@ package solver
 
 type Set[T comparable] interface {
 	Insert(elem T)
+	Remove(elem T)
 	Contains(elem T) bool
 	Elements() []T
 	Union(o Set[T]) Set[T]
@@ -17,6 +18,10 @@ type set[T comparable] struct {
 
 func (_set set[T]) Insert(elem T) {
 	_set.storage[elem] = struct{}{}
+}
+
+func (_set set[T]) Remove(elem T) {
+	delete(_set.storage, elem)
 }
 
 func (_set set[T]) Contains(elem T) bool {
