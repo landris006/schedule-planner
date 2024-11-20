@@ -155,23 +155,63 @@ func CreateQuickScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
 	return schedule.PickedCourses
 }
 
-func BK(clique Set[*CourseNode], available_vertices Set[*CourseNode], excluded_vertices Set[*CourseNode], cliques *[]ScheduleNode) {
+func BK(clique Set[*CourseNode], available_vertices Set[*CourseNode], excluded_vertices Set[*CourseNode], cliques *[]ScheduleNode, ordering *map[*CourseNode]float64) {
 	if available_vertices.Union(excluded_vertices).IsEmpty() {
 		*cliques = append(*cliques, ScheduleNode{clique, EmptySet[*CourseNode]()})
-	}
+	} else {
+		var bestValue = math.Inf(1)
+		var bestElements = []*CourseNode{}
 
-	//TODO: pivot pont
-	for _, vertex := range available_vertices.Elements() {
-		BK(clique.Union(CreateSet(vertex)), available_vertices.Intersection(vertex.Neighbors), excluded_vertices.Intersection(vertex.Neighbors), cliques)
-		available_vertices = available_vertices.Minus(CreateSet(vertex))
-		excluded_vertices.Insert(vertex)
+		for _, node := range available_vertices.Union(excluded_vertices).Elements() {
+			value := (*ordering)[node]
+			if value < bestValue {
+				bestValue = value
+				bestElements = []*CourseNode{node}
+			} else if value == bestValue {
+				bestElements = append(bestElements, node)
+			}
+		}
+
+		pivot := bestElements[0]
+
+		for _, vertex := range available_vertices.Minus(pivot.Neighbors).Elements() {
+			BK(clique.Union(CreateSet(vertex)), available_vertices.Intersection(vertex.Neighbors), excluded_vertices.Intersection(vertex.Neighbors), cliques, ordering)
+			available_vertices = available_vertices.Minus(CreateSet(vertex))
+			excluded_vertices.Insert(vertex)
+		}
 	}
 }
 
 func CreateScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
+
+	//Pivot ponthoz rendezés
+	//https://dl.acm.org/doi/pdf/10.1145/2402.322385 418.oldal
+	courseDegMap := make(map[*CourseNode]float64)
+	remainingNodes := CreateSet(graph.Nodes...)
+
+	for remainingNodes.Size() > 0 {
+		var bestValue = math.Inf(1)
+		println(bestValue)
+		var bestElements = []*CourseNode{}
+
+		for _, node := range remainingNodes.Elements() {
+			value := float64(node.Neighbors.Intersection(remainingNodes).Size())
+			if value < bestValue {
+				bestValue = value
+				bestElements = []*CourseNode{node}
+			} else if value == bestValue {
+				bestElements = append(bestElements, node)
+			}
+		}
+
+		best := bestElements[0]
+		courseDegMap[best] = bestValue
+		remainingNodes.Remove(best)
+	}
+
 	//https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm
 	max_cliques := []ScheduleNode{}
-	BK(EmptySet[*CourseNode](), CreateSet(graph.Nodes...), EmptySet[*CourseNode](), &max_cliques)
+	BK(EmptySet[*CourseNode](), CreateSet(graph.Nodes...), EmptySet[*CourseNode](), &max_cliques, &courseDegMap)
 
 	var bestValue = float64(math.Inf(-1))
 	var bestElements = []ScheduleNode{}
