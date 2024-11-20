@@ -3,6 +3,7 @@ package solver
 import (
 	"math"
 	"math/rand"
+	"sort"
 )
 
 type ScheduleNode struct {
@@ -163,7 +164,7 @@ func BK(clique Set[*CourseNode], available_vertices Set[*CourseNode], excluded_v
 		var bestElements = []*CourseNode{}
 
 		for _, node := range available_vertices.Union(excluded_vertices).Elements() {
-			value := (*ordering)[node]
+			value := float64(available_vertices.Intersection(node.Neighbors).Size())
 			if value < bestValue {
 				bestValue = value
 				bestElements = []*CourseNode{node}
@@ -174,7 +175,12 @@ func BK(clique Set[*CourseNode], available_vertices Set[*CourseNode], excluded_v
 
 		pivot := bestElements[0]
 
-		for _, vertex := range available_vertices.Minus(pivot.Neighbors).Elements() {
+		elements := available_vertices.Minus(pivot.Neighbors).Elements()
+		sort.Slice(elements, func(i, j int) bool {
+			return (*ordering)[elements[i]] < (*ordering)[elements[j]]
+		})
+
+		for _, vertex := range elements {
 			BK(clique.Union(CreateSet(vertex)), available_vertices.Intersection(vertex.Neighbors), excluded_vertices.Intersection(vertex.Neighbors), cliques, ordering)
 			available_vertices = available_vertices.Minus(CreateSet(vertex))
 			excluded_vertices.Insert(vertex)
@@ -184,7 +190,7 @@ func BK(clique Set[*CourseNode], available_vertices Set[*CourseNode], excluded_v
 
 func CreateScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
 
-	//Pivot ponthoz rendezés
+	//Rendezés
 	//https://dl.acm.org/doi/pdf/10.1145/2402.322385 418.oldal
 	courseDegMap := make(map[*CourseNode]float64)
 	remainingNodes := CreateSet(graph.Nodes...)
