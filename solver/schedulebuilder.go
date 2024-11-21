@@ -6,14 +6,14 @@ import (
 	"sort"
 )
 
-type ScheduleNode struct {
+type Schedule struct {
 	PickedCourses   Set[*CourseNode]
 	PickableCourses Set[*CourseNode]
 }
 
 // Ha később meg akarunk adni kurzusokat, amik mindenképpen benne kell, hogy legyenek az órarendben, akkor ezt lehet rá használni
-func CalculateStartNode(pickedCourses Set[*CourseNode], allCourses Set[*CourseNode]) *ScheduleNode {
-	var node = &ScheduleNode{pickedCourses, allCourses}
+func CalculateStartNode(pickedCourses Set[*CourseNode], allCourses Set[*CourseNode]) *Schedule {
+	var node = &Schedule{pickedCourses, allCourses}
 	var courseNodes = node.PickableCourses.Elements()
 
 	for i := 0; i < len(courseNodes) && allCourses.Size() > 0; i++ {
@@ -24,7 +24,7 @@ func CalculateStartNode(pickedCourses Set[*CourseNode], allCourses Set[*CourseNo
 }
 
 // Ha így meg tudnánk adni az összes feltételt, akkor szerintem nem is kellene az összeset összehasonlítani (?)
-func (schedule *ScheduleNode) EvaluatePick(pickedCourses []*CourseNode) int64 {
+func (schedule *Schedule) EvaluatePick(pickedCourses []*CourseNode) int64 {
 	var sum = 0
 
 	var pickableCourses = schedule.PickableCourses
@@ -51,7 +51,7 @@ func (schedule *ScheduleNode) EvaluatePick(pickedCourses []*CourseNode) int64 {
 	return int64(sum)
 }
 
-func (schedule *ScheduleNode) Value() float64 {
+func (schedule *Schedule) Value() float64 {
 	var size_factor = 2.0
 	var hole_factor = 1.0
 
@@ -126,7 +126,7 @@ func QuickExtendSchedule(pickedCourses Set[*CourseNode], allCourses Set[*CourseN
 }
 
 func CreateQuickScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
-	var schedule = ScheduleNode{EmptySet[*CourseNode](), CreateSet(graph.Nodes...)}
+	var schedule = Schedule{EmptySet[*CourseNode](), CreateSet(graph.Nodes...)}
 
 	for schedule.PickableCourses.Size() > 0 {
 		//Kiértékelések
@@ -156,9 +156,9 @@ func CreateQuickScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
 	return schedule.PickedCourses
 }
 
-func BK(clique Set[*CourseNode], available_vertices Set[*CourseNode], excluded_vertices Set[*CourseNode], cliques *[]ScheduleNode, ordering *map[*CourseNode]float64) {
+func BK(clique Set[*CourseNode], available_vertices Set[*CourseNode], excluded_vertices Set[*CourseNode], cliques *[]Schedule, ordering *map[*CourseNode]float64) {
 	if available_vertices.Union(excluded_vertices).IsEmpty() {
-		*cliques = append(*cliques, ScheduleNode{clique, EmptySet[*CourseNode]()})
+		*cliques = append(*cliques, Schedule{clique, EmptySet[*CourseNode]()})
 	} else {
 		var bestValue = math.Inf(1)
 		var bestElements = []*CourseNode{}
@@ -218,17 +218,17 @@ func CreateScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
 	}
 
 	//https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm
-	max_cliques := []ScheduleNode{}
+	max_cliques := []Schedule{}
 	BK(EmptySet[*CourseNode](), CreateSet(graph.Nodes...), EmptySet[*CourseNode](), &max_cliques, &courseDegMap)
 
 	var bestValue = float64(math.Inf(-1))
-	var bestElements = []ScheduleNode{}
+	var bestElements = []Schedule{}
 
 	for _, schedule := range max_cliques {
 		var value = schedule.Value()
 		if value > bestValue {
 			bestValue = value
-			bestElements = []ScheduleNode{schedule}
+			bestElements = []Schedule{schedule}
 		} else if value == bestValue {
 			bestElements = append(bestElements, schedule)
 		}
