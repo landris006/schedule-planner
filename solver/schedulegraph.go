@@ -197,7 +197,6 @@ func CreateScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
 
 	for remainingNodes.Size() > 0 {
 		var bestValue = math.Inf(1)
-		println(bestValue)
 		var bestElements = []*CourseNode{}
 
 		for _, node := range remainingNodes.Elements() {
@@ -211,7 +210,10 @@ func CreateScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
 		}
 
 		best := bestElements[0]
-		courseDegMap[best] = bestValue
+		//Ez itt igazából az indexe az elemnek, ha visszafelé indexelnénk
+		//Szívem szerint egy rendezett tömbbe tenném, de nincsen kedvem megírni a rendezést vele
+		//a másik függvényben (sort.Slice(elements, func(i, j int) bool {-os sor)
+		courseDegMap[best] = float64(len(graph.Nodes) - len(courseDegMap))
 		remainingNodes.Remove(best)
 	}
 
