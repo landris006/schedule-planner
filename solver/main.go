@@ -119,8 +119,8 @@ func courseCompatible(course1 Course, course2 Course) bool {
 
 func main() {
 	var sub = Subject{"", "", []*Course{}}
-	var course1 = Course{&sub, "", "", Wednesday, *forceTime(8, 0), *forceTime(8, 30), "", "", 100, Lecture}
-	var course2 = Course{&sub, "", "", Wednesday, *forceTime(8, 0), *forceTime(8, 30), "", "", 100, Lecture}
+	var course1 = Course{&sub, "code1", "", Wednesday, *forceTime(8, 0), *forceTime(8, 30), "", "", 100, Lecture}
+	var course2 = Course{&sub, "code2", "", Wednesday, *forceTime(8, 0), *forceTime(8, 30), "", "", 100, Lecture}
 	fmt.Println(courseCompatible(course1, course2)) // false
 
 	course1.Day = Tuesday
@@ -154,4 +154,34 @@ func main() {
 
 	time = forceTime(26, 19) // default value
 	fmt.Printf("time: %v", time)
+
+	err = nil
+	table := makeEmptyTimetable() // create timetable
+	fmt.Printf("\n\ntable: %v \nerr: %v \n\n", table, err)
+	err = table.addCourse(&course1) // add a course, no error
+	fmt.Printf("table: %v \nerr: %v \n\n", table, err)
+	err = table.removeCourse(&course1) // remove the course, no error
+	fmt.Printf("table: %v \nerr: %v \n\n", table, err)
+	err = table.removeCourse(&course1) // remove a nonexistant course, error
+	fmt.Printf("table: %v \nerr: %v \n\n", table, err)
+	table.addCourse(&course1)
+	err = table.addCourse(&course1) // add a course that does not fit, error
+	fmt.Printf("table: %v \nerr: %v \n\n", table, err)
+	course2.StartTime = *forceTime(11, 0)
+	course2.EndTime = *forceTime(11, 30)
+	err = table.addCourse(&course2) // add a second course, no error
+	fmt.Printf("table: %v \nerr: %v", table, err)
+
+	sub = Subject{"code", "name", []*Course{&course1, &course2}}
+	table = makeEmptyTimetable()
+	err = table.addSubject(&sub, "code1") // add course from a subject with code1, no error
+	fmt.Printf("table: %v \nerr: %v \n\n", table, err)
+	err = table.addSubject(&sub, "code2") // add course from a subject with code2, no error
+	fmt.Printf("table: %v \nerr: %v \n\n", table, err)
+	err = table.addSubject(&sub, "code2") // add course from a subject with code3, error
+	fmt.Printf("table: %v \nerr: %v \n\n", table, err)
+	err = table.removeSubject(&sub) // remove a whole subject, no error
+	fmt.Printf("table: %v \nerr: %v \n\n", table, err)
+	err = table.removeSubject(&sub) // remove a nonexistant subject, error
+	fmt.Printf("table: %v \nerr: %v \n\n", table, err)
 }
