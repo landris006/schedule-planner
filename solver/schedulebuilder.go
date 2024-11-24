@@ -33,11 +33,28 @@ func (schedule *Schedule) EvaluatePick(pickedCourses []*CourseNode) int64 {
 	}
 	sum += pickableCourses.Size()
 
+	invalidCourses := EmptySet[*CourseNode]()
+	excludedCourses := EmptySet[*CourseNode]()
+
+	//Szűrjük ki azokat az órákat, amik ütköznének, ha nem lenne megengedett az ütközés
+	for _, course1 := range schedule.PickedCourses.Elements() {
+		//Ha megengedtük az ütközést, akkor biztosan a szomszédai között van
+		for _, course2 := range course1.Neighbors.Minus(excludedCourses).Elements() {
+			if course1.Course.Time.Start <= course2.Course.Time.Start && course1.Course.Time.End >= course2.Course.Time.End {
+				invalidCourses.Insert(course2)
+			} else if course1.Course.Time.Start > course2.Course.Time.Start && course1.Course.Time.End < course2.Course.Time.End {
+				invalidCourses.Insert(course1)
+			}
+			//Ne vizsgáljuk többször azokat, amiket már megvizsgáltunk
+			excludedCourses.Insert(course1)
+		}
+	}
+
 	//Lyukasórák
 	//0, 1 vagy 2 szomszédja lehet az új órának -> a (szomszéd-1) előjelet ad a súlyozásnak
 	//Szerintem a súlyozás jobb, ha függ az idáig meglevő kurzusokkal: minél több kurzus van, annál inkább javít vagy ront a lyukasóra
 	//Nem ad pontos értéket, ha több, rögtön egymás után következő órát adunk hozzá egyszerre az órarendhez
-	for _, pickedCourse := range pickedCourses {
+	for _, pickedCourse := range CreateSet(pickedCourses...).Minus(invalidCourses).Elements() {
 		var neighborValue = -1
 		for _, course := range schedule.PickedCourses.Elements() {
 			if course.Course.Time.Day == pickedCourse.Course.Time.Day &&
