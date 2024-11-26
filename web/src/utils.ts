@@ -6,10 +6,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function useQuery<T, U>({
+export function useQuery<T, U = undefined>({
   fetcher,
+  onSuccess,
 }: {
   fetcher: (input: U) => Promise<T>;
+  onSuccess?: (data: T) => void;
 }) {
   const [data, setData] = useState<T>();
   const [status, setStatus] = useState<
@@ -21,13 +23,12 @@ export function useQuery<T, U>({
     fetcher(input)
       .then((data) => {
         setData(data);
+        onSuccess?.(data);
+        setStatus('success');
       })
       .catch((error) => {
         console.error(error);
         setStatus('error');
-      })
-      .finally(() => {
-        setStatus('success');
       });
   }
 

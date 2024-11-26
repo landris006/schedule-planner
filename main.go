@@ -14,7 +14,7 @@ func main() {
 	}
 
 	http.HandleFunc("/", handlers.ServeStatic("static", "index.html"))
-	http.HandleFunc("/api/hello", handlers.Hello)
+	http.HandleFunc("/api/solver", handlers.Solver)
 	http.HandleFunc("/tanrendnavigation", handlers.TanrendProxy)
 
 	log.Printf("About to listen on %s.", listenAddr)

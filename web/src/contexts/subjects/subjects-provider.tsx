@@ -6,6 +6,7 @@ import {
   Subject,
   SubjectsContext,
   Time,
+  CourseType,
 } from '@/contexts/subjects/subjects-context';
 import { useQuery } from '@/utils';
 import { useQueryState } from 'nuqs';
@@ -53,10 +54,10 @@ export default function SubjectsProvider({
 }
 
 const COURSE_TYPE_MAP = {
-  '(előadás)': 'lecture',
-  '(lecture)': 'lecture',
-  '(gyakorlat)': 'practice',
-  '(practice)': 'practice',
+  '(előadás)': CourseType.Lecture,
+  '(lecture)': CourseType.Lecture,
+  '(gyakorlat)': CourseType.Practice,
+  '(practice)': CourseType.Practice,
 } as const;
 
 async function scrapeCouses(queryOptions: QueryOptions): Promise<string> {
@@ -119,7 +120,7 @@ function parseSubjects(htmlString: string) {
     subject = subjects.get(subjectCode)!;
 
     const mappedType = COURSE_TYPE_MAP[type as keyof typeof COURSE_TYPE_MAP];
-    if (!mappedType) {
+    if (mappedType === undefined) {
       return;
     }
 
@@ -165,20 +166,20 @@ function parseTime(timeString: string): Time | undefined {
   }
 }
 const DAY_MAP = {
-  Monday: 0,
-  Tuesday: 1,
-  Wednesday: 2,
-  Thursday: 3,
-  Friday: 4,
-  Saturday: 5,
-  Sunday: 6,
-  Hétfő: 0,
-  Kedd: 1,
-  Szerda: 2,
-  Csütörtök: 3,
-  Péntek: 4,
-  Szombat: 5,
-  Vasárnap: 6,
+  Sunday: 0,
+  Monday: 1,
+  Tuesday: 2,
+  Wednesday: 3,
+  Thursday: 4,
+  Friday: 5,
+  Saturday: 6,
+  Vasárnap: 0,
+  Hétfő: 1,
+  Kedd: 2,
+  Szerda: 3,
+  Csütörtök: 4,
+  Péntek: 5,
+  Szombat: 6,
 };
 
 function hhmmToFloat(hhmm: string) {
