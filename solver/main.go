@@ -1,66 +1,26 @@
 package main
 
-// hard feltételek:
-// ne legyen óra ütközés
-
-// preferenciák:
-// lyukas óra minimalizálás
-
-// Tantárgy
-type Subject struct {
-	Code    string    `json:"code"`
-	Name    string    `json:"name"`
-	Courses []*Course `json:"courses"`
-}
-
-// Kurzus
-type Course struct {
-	Subject    *Subject   `json:"subject"`
-	Code       string     `json:"code"`
-	Name       string     `json:"name"`
-	Time       Time       `json:"time"`
-	Instructor string     `json:"instructor"`
-	Location   string     `json:"location"`
-	Capacity   int        `json:"capacity"`
-	Type       CourseType `json:"type"` // 0 = 'lecture' | 1 = 'practice'
-}
-
-// 5 egész percekre kerekített diszkrét értékek
-type Time struct {
-	Start float32 `json:"start"` // 0 - 23.99
-	End   float32 `json:"end"`   // 0 - 23.99
-	Day   Weekday `json:"day"`   // 0 = Monday, 1 = Tuesday, 2 = Wednesday, 3 = Thursday, 4 = Friday, 5 = Saturday, 6 = Sunday
-}
-
-// A Golang nem támogatja az Enum-ot, workaround:
-// https://builtin.com/software-engineering-perspectives/golang-enum
-type Weekday int
-
-const (
-	Monday Weekday = iota
-	Tuesday
-	Wednesday
-	Thursday
-	Friday
-	Saturday
-	Sunday
+import (
+	"strconv"
 )
-
-func (w Weekday) ordinal() int {
-	return int(w)
-}
-
-type CourseType int
-
-const (
-	Lecture CourseType = iota
-	Practice
-)
-
-func (ct CourseType) ordinal() int {
-	return int(ct)
-}
 
 func main() {
-	println("Hello, world!")
+	for i := 0; i < 1; i++ {
+		var courseGraph = CourseGraph{}
+		courseGraph.BuildGraph(ReadSubjects("test_inputs/test_a.json"))
+
+		var scheduledCourses = CreateScheduleFromScratch(&courseGraph).Elements()
+
+		println("Felvett kurzusok száma: " + strconv.Itoa(len(scheduledCourses)))
+		for _, course := range scheduledCourses {
+			println("\tTárgy neve: " + course.Course.Subject.Name)
+			println("\tKurzuskód: " + course.Course.Code)
+			println("\tNap: " + strconv.Itoa(course.Course.Time.Day.ordinal()))
+			println(
+				"\tKezdés: " + strconv.FormatFloat(float64(course.Course.Time.Start), 'g', 4, 32),
+			)
+			println("\tVégzés: " + strconv.FormatFloat(float64(course.Course.Time.End), 'g', 4, 32))
+			println("")
+		}
+	}
 }
