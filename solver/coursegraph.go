@@ -1,4 +1,4 @@
-package main
+package solver
 
 type CourseNode struct {
 	Course    *Course

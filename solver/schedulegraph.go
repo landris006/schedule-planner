@@ -1,4 +1,4 @@
-package main
+package solver
 
 import (
 	"math"
@@ -45,7 +45,8 @@ func (schedule *ScheduleNode) EvaluatePick(pickedCourses []*CourseNode) int64 {
 	for _, pickedCourse := range pickedCourses {
 		var neighborValue = -1
 		for _, course := range schedule.PickedCourses.Elements() {
-			if course.Course.Time.Day == pickedCourse.Course.Time.Day && (course.Course.Time.Start == pickedCourse.Course.Time.End || course.Course.Time.End == pickedCourse.Course.Time.Start) {
+			if course.Course.Time.Day == pickedCourse.Course.Time.Day &&
+				(course.Course.Time.Start == pickedCourse.Course.Time.End || course.Course.Time.End == pickedCourse.Course.Time.Start) {
 				neighborValue++
 			}
 		}

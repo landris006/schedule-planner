@@ -1,4 +1,4 @@
-package main
+package solver
 
 type Set[T comparable] interface {
 	Insert(elem T)

@@ -1,10 +1,11 @@
-package main
+package solver
 
 import (
 	"strconv"
+	"testing"
 )
 
-func main() {
+func TestSolver(t *testing.T) {
 	for i := 0; i < 1; i++ {
 		var courseGraph = CourseGraph{}
 		courseGraph.BuildGraph(ReadSubjects("test_inputs/test_a.json"))
