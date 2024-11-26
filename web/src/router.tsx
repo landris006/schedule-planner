@@ -3,6 +3,7 @@ import Layout from '@/pages/layout';
 import Subjects from '@/pages/subjects';
 import Planner from '@/pages/planner';
 import SubjectsProvider from './contexts/subjects/subjects-provider';
+import Results from './pages/results';
 
 export const router = createBrowserRouter([
   {
@@ -24,6 +25,10 @@ export const router = createBrowserRouter([
       {
         path: '/planner',
         element: <Planner />,
+      },
+      {
+        path: '/results',
+        element: <Results />,
       },
     ],
   },

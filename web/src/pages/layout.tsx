@@ -35,6 +35,16 @@ export default function Layout() {
                 {labels.PLANNER}
               </NavLink>
             </li>
+            <li>
+              <NavLink
+                to={{
+                  pathname: '/results',
+                  search,
+                }}
+              >
+                {labels.RESULTS}
+              </NavLink>
+            </li>
           </ul>
         </div>
 

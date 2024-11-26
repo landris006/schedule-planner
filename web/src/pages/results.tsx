@@ -1,38 +1,16 @@
-import Button from '@/components/button';
+import { floatToHHMM } from '@/utils';
 import Calendar from '@/components/calendar';
 import { useLabel } from '@/contexts/label/label-context';
-import { Subject } from '@/contexts/subjects/subjects-context';
 import { usePlannerStore } from '@/stores/planner';
-import { floatToHHMM, useQuery } from '@/utils';
-import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 
-async function callSolver(queryOptions: Subject[]) {
-  return fetch('/api/solver', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(queryOptions),
-  }).then((res) => res.json());
-}
-
-export default function Planner() {
-  const navigate = useNavigate();
-  const { subjects, setResults, calendarSettings, setSlotDuration } =
-    usePlannerStore();
+export default function Results() {
   const { labels } = useLabel();
-  const solverQuery = useQuery<Subject[], Subject[]>({
-    fetcher: callSolver,
-    onSuccess: (data) => {
-      setResults(data);
-      navigate('/results');
-    },
-  });
+
+  const { results, calendarSettings, setSlotDuration } = usePlannerStore();
 
   const [earliestStartTime, latestEndTime] = useMemo(() => {
-    const earliestStartTime = subjects.reduce(
+    const earliestStartTime = results.reduce(
       (acc, subject) =>
         Math.min(
           acc,
@@ -43,7 +21,7 @@ export default function Planner() {
         ),
       Infinity,
     );
-    const latestEndTime = subjects.reduce(
+    const latestEndTime = results.reduce(
       (acc, subject) =>
         Math.max(
           acc,
@@ -56,24 +34,13 @@ export default function Planner() {
     );
 
     return [earliestStartTime, latestEndTime];
-  }, [subjects]);
+  }, [results]);
 
   return (
     <div className="p-3">
       <div className="mx-auto max-w-7xl flex-1 overflow-x-auto">
-        <div className="flex justify-between">
-          <h1 className="text-3xl">{labels.PLANNER}</h1>
+        <h1 className="text-3xl">{labels.RESULTS}</h1>
 
-          <Button
-            label="Solver"
-            className="btn-primary"
-            icon={<MagnifyingGlassIcon width={20} height={20} />}
-            isLoading={solverQuery.isLoading}
-            onClick={() => {
-              solverQuery.fetch(subjects);
-            }}
-          />
-        </div>
         <div className="min-w-[800px]">
           <Calendar
             slotMinTime={floatToHHMM(
@@ -83,7 +50,7 @@ export default function Planner() {
               latestEndTime === -Infinity ? 24 : latestEndTime + 2,
             )}
             slotDuration={`00:${calendarSettings.slotDuration}:00`}
-            events={subjects.flatMap((subject) =>
+            events={results.flatMap((subject) =>
               subject.courses
                 .filter((c) => c.time)
                 .map((course) => ({

@@ -8,6 +8,7 @@ import {
 import { useLabel } from '@/contexts/label/label-context';
 import {
   Course,
+  CourseType,
   SEARCH_MODES,
   SEMESTERS,
   useSubjects,
@@ -137,9 +138,11 @@ export default function Subjects() {
         {isSuccess && !subjects?.length && <p>{labels.NO_RECORDS_FOUND}</p>}
 
         {subjects?.map((subject) => {
-          const lectures = subject.courses.filter((c) => c.type === 'lecture');
+          const lectures = subject.courses.filter(
+            (c) => c.type === CourseType.Lecture,
+          );
           const practices = subject.courses.filter(
-            (c) => c.type === 'practice',
+            (c) => c.type === CourseType.Practice,
           );
 
           const isSaved = savedSubjects.find((s) => s.code === subject.code);
@@ -235,12 +238,13 @@ function CourseCard({ course }: { course: Course }) {
 
   const [code, _] = course.code.split(' ');
   const classNumber =
-    course.type === 'practice' && code.split('-')[code.split('-').length - 1];
+    course.type === CourseType.Practice &&
+    code.split('-')[code.split('-').length - 1];
 
   return (
     <div className="rounded-md bg-base-100 p-3">
       <h2 className="text-lg font-bold">
-        {course.type === 'lecture'
+        {course.type === CourseType.Lecture
           ? labels.LECTURE
           : `${labels.PRACTICE} ${classNumber}.`}
       </h2>

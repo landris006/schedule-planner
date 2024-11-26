@@ -4,25 +4,34 @@ import { persist } from 'zustand/middleware';
 
 type PlannerState = {
   subjects: Subject[];
-  addSubject: (subject: Subject) => void;
-  removeSubject: (subject: Subject) => void;
+  results: Subject[];
   calendarSettings: {
     slotDuration: number;
   };
+  addSubject: (subject: Subject) => void;
+  setResults: (results: Subject[]) => void;
+  removeSubject: (subject: Subject) => void;
   setSlotDuration: (slotDuration: number) => void;
 };
 
 export const usePlannerStore = create<PlannerState>()(
   persist(
     (set) => ({
+      subjects: [],
+      results: [],
       calendarSettings: {
         slotDuration: 30,
       },
-      subjects: [],
       addSubject: (subject) => {
         set((state) => ({
           ...state,
           subjects: [...state.subjects, subject],
+        }));
+      },
+      setResults: (results) => {
+        set((state) => ({
+          ...state,
+          results,
         }));
       },
       removeSubject: (subject) => {

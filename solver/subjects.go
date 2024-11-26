@@ -28,7 +28,7 @@ type Course struct {
 type Time struct {
 	Start float32 `json:"start"` // 0 - 23.99
 	End   float32 `json:"end"`   // 0 - 23.99
-	Day   Weekday `json:"day"`   // 0 = Monday, 1 = Tuesday, 2 = Wednesday, 3 = Thursday, 4 = Friday, 5 = Saturday, 6 = Sunday
+	Day   Weekday `json:"day"`   // 0 = Sunday, 1 = Monday, 2 = Tuesday, 3 = Wednesday, 4 = Thursday, 5 = Friday, 6 = Saturday
 }
 
 // A Golang nem támogatja az Enum-ot, workaround:
@@ -121,7 +121,7 @@ func ReadSubjects(filepath string) []*Subject {
 
 	// we unmarshal our byteArray which contains our
 	// jsonFile's content into 'users' which we defined above
-	json.Unmarshal(byteValue, &_subjects)
+	_ = json.Unmarshal(byteValue, &_subjects)
 
 	return _subjects.Subjects
 }

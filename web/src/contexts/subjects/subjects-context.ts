@@ -27,13 +27,18 @@ export type Subject = {
   courses: Course[];
 };
 
+export enum CourseType {
+  Lecture = 0,
+  Practice = 1,
+}
+
 export type Course = {
   time?: Time;
   code: string;
   instructor: string;
   place: string;
   capacity: number;
-  type: 'lecture' | 'practice';
+  type: CourseType;
 };
 
 export type Time = {
