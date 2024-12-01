@@ -223,13 +223,13 @@ export default function Subjects() {
 function CourseCard({ course }: { course: Course }) {
   const { labels } = useLabel();
   const days = [
+    labels.SUNDAY,
     labels.MONDAY,
     labels.TUESDAY,
     labels.WEDNESDAY,
     labels.THURSDAY,
     labels.FRIDAY,
     labels.SATURDAY,
-    labels.SUNDAY,
   ];
 
   const [code, _] = course.code.split(' ');

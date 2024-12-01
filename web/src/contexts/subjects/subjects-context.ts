@@ -25,6 +25,7 @@ export type Subject = {
   code: string;
   name: string;
   courses: Course[];
+  color?: string;
 };
 
 export enum CourseType {
