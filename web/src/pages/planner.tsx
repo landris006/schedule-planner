@@ -20,7 +20,7 @@ async function callSolver(queryOptions: Subject[]) {
 
 export default function Planner() {
   const navigate = useNavigate();
-  const { subjects, setResults, calendarSettings, setSlotDuration } =
+  const { savedSubjects, setResults, calendarSettings, setSlotDuration } =
     usePlannerStore();
   const { labels } = useLabel();
   const solverQuery = useQuery<Subject[], Subject[]>({
@@ -32,7 +32,7 @@ export default function Planner() {
   });
 
   const [earliestStartTime, latestEndTime] = useMemo(() => {
-    const earliestStartTime = subjects.reduce(
+    const earliestStartTime = savedSubjects.reduce(
       (acc, subject) =>
         Math.min(
           acc,
@@ -43,7 +43,7 @@ export default function Planner() {
         ),
       Infinity,
     );
-    const latestEndTime = subjects.reduce(
+    const latestEndTime = savedSubjects.reduce(
       (acc, subject) =>
         Math.max(
           acc,
@@ -56,7 +56,7 @@ export default function Planner() {
     );
 
     return [earliestStartTime, latestEndTime];
-  }, [subjects]);
+  }, [savedSubjects]);
 
   return (
     <div className="p-3">
@@ -70,7 +70,7 @@ export default function Planner() {
             icon={<MagnifyingGlassIcon width={20} height={20} />}
             isLoading={solverQuery.isLoading}
             onClick={() => {
-              solverQuery.fetch(subjects);
+              solverQuery.fetch(savedSubjects);
             }}
           />
         </div>
@@ -83,7 +83,7 @@ export default function Planner() {
               latestEndTime === -Infinity ? 24 : latestEndTime + 2,
             )}
             slotDuration={`00:${calendarSettings.slotDuration}:00`}
-            events={subjects.flatMap((subject) =>
+            events={savedSubjects.flatMap((subject) =>
               subject.courses
                 .filter((c) => c.time)
                 .map((course) => ({
@@ -91,6 +91,7 @@ export default function Planner() {
                   daysOfWeek: [course.time!.day],
                   startTime: floatToHHMM(course.time!.start),
                   duration: floatToHHMM(course.time!.end - course.time!.start),
+                  color: '#007bff',
                 })),
             )}
           />

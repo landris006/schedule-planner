@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 type PlannerState = {
-  subjects: Subject[];
+  savedSubjects: Subject[];
   results: Subject[];
   calendarSettings: {
     slotDuration: number;
@@ -17,7 +17,7 @@ type PlannerState = {
 export const usePlannerStore = create<PlannerState>()(
   persist(
     (set) => ({
-      subjects: [],
+      savedSubjects: [],
       results: [],
       calendarSettings: {
         slotDuration: 30,
@@ -25,7 +25,7 @@ export const usePlannerStore = create<PlannerState>()(
       addSubject: (subject) => {
         set((state) => ({
           ...state,
-          subjects: [...state.subjects, subject],
+          savedSubjects: [...state.savedSubjects, subject],
         }));
       },
       setResults: (results) => {
@@ -37,7 +37,9 @@ export const usePlannerStore = create<PlannerState>()(
       removeSubject: (subject) => {
         set((state) => ({
           ...state,
-          subjects: state.subjects.filter((s) => s.code !== subject.code),
+          savedSubjects: state.savedSubjects.filter(
+            (s) => s.code !== subject.code,
+          ),
         }));
       },
       setSlotDuration: (slotDuration) => {

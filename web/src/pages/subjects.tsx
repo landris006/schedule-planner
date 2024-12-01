@@ -28,11 +28,7 @@ export default function Subjects() {
     },
     ...subjectsContext
   } = useSubjects();
-  const {
-    subjects: savedSubjects,
-    addSubject,
-    removeSubject,
-  } = usePlannerStore();
+  const { savedSubjects, addSubject, removeSubject } = usePlannerStore();
 
   const input = useRef<HTMLInputElement>(null);
 
