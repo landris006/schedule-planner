@@ -71,3 +71,11 @@ export function floatToHHMM(float: number) {
   const minute = Math.floor((float - hour) * 60);
   return `${hour}:${minute.toString().padStart(2, '0')}`;
 }
+
+export function generateColor(code: string) {
+  const hash = code.split('').reduce((acc, char) => {
+    return (acc << 5) - acc + char.charCodeAt(0);
+  }, 0);
+  const hue = Math.floor(hash % 360);
+  return `hsl(${hue}, 100%, 30%)`;
+}

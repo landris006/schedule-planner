@@ -1,4 +1,5 @@
 import { Subject } from '@/contexts/subjects/subjects-context';
+import { generateColor } from '@/utils';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -25,7 +26,13 @@ export const usePlannerStore = create<PlannerState>()(
       addSubject: (subject) => {
         set((state) => ({
           ...state,
-          savedSubjects: [...state.savedSubjects, subject],
+          savedSubjects: [
+            ...state.savedSubjects,
+            {
+              ...subject,
+              color: generateColor(subject.code + subject.name),
+            },
+          ],
         }));
       },
       setResults: (results) => {
