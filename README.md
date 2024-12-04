@@ -25,3 +25,6 @@ You will need NodeJs. ([Download from the official site](https://nodejs.org/en) 
 1. Go into the `web/` directory.
 2. `npm install` to install the dependencies.
 3. `npm run dev` to start the development server.
+
+## Deployment
+New commits to the `main` branch automatically trigger a [deploy workflow](https://github.com/landris006/schedule-planner/blob/main/.github/workflows/deploy.yml), that builds and deploys the project to Azure.
