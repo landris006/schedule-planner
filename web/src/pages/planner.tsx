@@ -10,16 +10,6 @@ import { useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 
-async function callSolver(queryOptions: Subject[]) {
-  return fetch('/api/solver', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(queryOptions),
-  }).then((res) => res.json());
-}
-
 export default function Planner() {
   const navigate = useNavigate();
   const { savedSubjects, setResults, calendarSettings, setSlotDuration } =
@@ -38,10 +28,12 @@ export default function Planner() {
       (acc, subject) =>
         Math.min(
           acc,
-          subject.courses.reduce(
-            (acc, course) => Math.min(acc, course.time?.start ?? 0),
-            Infinity,
-          ),
+          subject.courses
+            .filter((c) => !!c.time)
+            .reduce(
+              (acc, course) => Math.min(acc, course.time!.start ?? 0),
+              Infinity,
+            ),
         ),
       Infinity,
     );
@@ -49,10 +41,12 @@ export default function Planner() {
       (acc, subject) =>
         Math.max(
           acc,
-          subject.courses.reduce(
-            (acc, course) => Math.max(acc, course.time?.end ?? Infinity),
-            -Infinity,
-          ),
+          subject.courses
+            .filter((c) => !!c.time)
+            .reduce(
+              (acc, course) => Math.max(acc, course.time!.end ?? Infinity),
+              -Infinity,
+            ),
         ),
       -Infinity,
     );
@@ -72,7 +66,9 @@ export default function Planner() {
             icon={<MagnifyingGlassIcon width={20} height={20} />}
             isLoading={solverQuery.isLoading}
             onClick={() => {
-              solverQuery.fetch(savedSubjects);
+              solverQuery.fetch(
+                savedSubjects.filter((s) => s.courses.every((c) => !!c.time)),
+              );
             }}
           />
         </div>
@@ -118,6 +114,16 @@ export default function Planner() {
       </div>
     </div>
   );
+}
+
+async function callSolver(queryOptions: Subject[]) {
+  return fetch('/api/solver', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(queryOptions),
+  }).then((res) => res.json());
 }
 
 function EventItem({ eventInfo }: { eventInfo: EventContentArg }) {
