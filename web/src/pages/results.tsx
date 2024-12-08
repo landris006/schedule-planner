@@ -14,10 +14,12 @@ export default function Results() {
       (acc, subject) =>
         Math.min(
           acc,
-          subject.courses.reduce(
-            (acc, course) => Math.min(acc, course.time?.start ?? 0),
-            Infinity,
-          ),
+          subject.courses
+            .filter((c) => !!c.time)
+            .reduce(
+              (acc, course) => Math.min(acc, course.time!.start ?? 0),
+              Infinity,
+            ),
         ),
       Infinity,
     );
@@ -25,10 +27,12 @@ export default function Results() {
       (acc, subject) =>
         Math.max(
           acc,
-          subject.courses.reduce(
-            (acc, course) => Math.max(acc, course.time?.end ?? Infinity),
-            -Infinity,
-          ),
+          subject.courses
+            .filter((c) => !!c.time)
+            .reduce(
+              (acc, course) => Math.max(acc, course.time!.end ?? Infinity),
+              -Infinity,
+            ),
         ),
       -Infinity,
     );
