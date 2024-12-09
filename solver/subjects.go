@@ -70,7 +70,8 @@ func (course_a *Course) IsInConflictWith(course_b *Course) bool {
 	if course_a.Subject == course_b.Subject && course_a.Type == course_b.Type {
 		return true
 	}
-	return course_a.AllowOverlap || course_b.AllowOverlap || !course_a.OverlapsWith(course_b)
+
+	return course_a.AllowOverlap || course_b.AllowOverlap || course_a.OverlapsWith(course_b)
 }
 
 func (course_a *Course) OverlapsWith(course_b *Course) bool {
