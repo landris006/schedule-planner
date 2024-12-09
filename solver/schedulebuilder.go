@@ -67,15 +67,11 @@ func (schedule *Schedule) EvaluatePick(pickedCourses []*CourseNode) int64 {
 	return int64(sum)
 }
 
-func (schedule *Schedule) Value() float64 {
-	var size_factor = 2.0
-	var hole_factor = 1.0
-
-	var sum = size_factor * float64(schedule.PickedCourses.Size())
-
+func (schedule *Schedule) CountGaps() int {
+	//Ha minden igaz, itt az endPoints.Size()-nak muszáj párosnak lennie
 	//Lyukasórák számolása a nem fedett végpontok alapján
 	days := EmptySet[int]()
-	endPoints := EmptySet[float32]()
+	endPoints := make(map[int]Set[float32])
 	invalidCourses := EmptySet[*CourseNode]()
 	excludedCourses := EmptySet[*CourseNode]()
 
@@ -93,23 +89,50 @@ func (schedule *Schedule) Value() float64 {
 	}
 
 	for _, course := range schedule.PickedCourses.Minus(invalidCourses).Elements() {
-		days.Insert(course.Course.Time.Day.ordinal())
-		if endPoints.Contains(course.Course.Time.Start) {
-			endPoints.Remove(course.Course.Time.Start)
-		} else {
-			endPoints.Insert(course.Course.Time.Start)
+		day := course.Course.Time.Day.ordinal()
+		if !days.Contains(day) {
+			days.Insert(day)
+			endPoints[day] = EmptySet[float32]()
 		}
-		if endPoints.Contains(course.Course.Time.End) {
-			endPoints.Remove(course.Course.Time.End)
+
+		//Az esti órák között van negyed óra szünet => kerekítsünk fél órákra, hogy "összeérjenek"
+		startTime := course.Course.Time.Start
+		endTime := course.Course.Time.End
+
+		if startTime >= 16 {
+			startTime = float32(math.Floor(float64(2*startTime)) / 2)
+			endTime = float32(math.Ceil(float64(2*endTime)) / 2)
+		}
+
+		if endPoints[day].Contains(startTime) {
+			endPoints[day].Remove(startTime)
 		} else {
-			endPoints.Insert(course.Course.Time.End)
+			endPoints[day].Insert(startTime)
+		}
+		if endPoints[day].Contains(endTime) {
+			endPoints[day].Remove(endTime)
+		} else {
+			endPoints[day].Insert(endTime)
 		}
 	}
 
-	//Ha minden igaz, itt az endPoints.Size()-nak muszáj párosnak lennie
-	sum -= hole_factor * float64(days.Size()-(endPoints.Size()/2))
+	sum := 0
+	for _, set := range endPoints {
+		sum += set.Size()/2 - 1
+	}
 
-	return float64(sum)
+	return sum
+}
+
+func (schedule *Schedule) Value() float64 {
+	var size_factor = 2.0
+	var gap_factor = 3.0
+
+	var sum = size_factor * float64(schedule.PickedCourses.Size())
+
+	sum -= gap_factor * float64(schedule.CountGaps())
+
+	return sum
 }
 
 func QuickExtendSchedule(pickedCourses Set[*CourseNode], allCourses Set[*CourseNode]) Set[*CourseNode] {
@@ -250,5 +273,6 @@ func CreateScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
 	}
 
 	randomIndex := rand.Intn(len(bestElements))
+
 	return bestElements[randomIndex].PickedCourses
 }

@@ -10,10 +10,10 @@ func TestSolver(t *testing.T) {
 		var courseGraph = CourseGraph{}
 		courseGraph.BuildGraph(ReadSubjects("test_inputs/test_a.json"))
 
-		var scheduledCourses = CreateScheduleFromScratch(&courseGraph).Elements()
+		var scheduledCourses = CreateScheduleFromScratch(&courseGraph)
 
-		println("Felvett kurzusok száma: " + strconv.Itoa(len(scheduledCourses)))
-		for _, course := range scheduledCourses {
+		println("Felvett kurzusok száma: " + strconv.Itoa(scheduledCourses.Size()))
+		for _, course := range scheduledCourses.Elements() {
 			println("\tTárgy neve: " + course.Course.Subject.Name)
 			println("\tKurzuskód: " + course.Course.Code)
 			println("\tNap: " + strconv.Itoa(course.Course.Time.Day.ordinal()))
@@ -24,10 +24,10 @@ func TestSolver(t *testing.T) {
 			println("")
 		}
 
-		scheduledCourses = CreateQuickScheduleFromScratch(&courseGraph).Elements()
+		scheduledCourses = CreateQuickScheduleFromScratch(&courseGraph)
 
-		println("Felvett kurzusok száma: " + strconv.Itoa(len(scheduledCourses)))
-		for _, course := range scheduledCourses {
+		println("Felvett kurzusok száma: " + strconv.Itoa(scheduledCourses.Size()))
+		for _, course := range scheduledCourses.Elements() {
 			println("\tTárgy neve: " + course.Course.Subject.Name)
 			println("\tKurzuskód: " + course.Course.Code)
 			println("\tNap: " + strconv.Itoa(course.Course.Time.Day.ordinal()))
