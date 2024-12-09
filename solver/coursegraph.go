@@ -24,7 +24,7 @@ func (graph *CourseGraph) BuildGraph(subjects []*Subject) {
 		for j := i + 1; j < len(graph.Nodes); j++ {
 			var node_b = graph.Nodes[j]
 			//println(node_a.Course.Code + " - " + node_b.Course.Code + ": " + strconv.FormatBool(node_a.Course.OverlapsWith(node_b.Course)))
-			if !node_a.Course.OverlapsWith(node_b.Course) {
+			if !node_a.Course.IsInConflictWith(node_b.Course) {
 				node_a.Neighbors.Insert(node_b)
 				node_b.Neighbors.Insert(node_a)
 			}

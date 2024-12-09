@@ -40,14 +40,13 @@ func (schedule *Schedule) EvaluatePick(pickedCourses []*CourseNode) int64 {
 	for _, course1 := range schedule.PickedCourses.Elements() {
 		//Ha megengedtük az ütközést, akkor biztosan a szomszédai között van
 		for _, course2 := range course1.Neighbors.Minus(excludedCourses).Elements() {
-			if course1.Course.Time.Start <= course2.Course.Time.Start && course1.Course.Time.End >= course2.Course.Time.End {
-				invalidCourses.Insert(course2)
-			} else if course1.Course.Time.Start > course2.Course.Time.Start && course1.Course.Time.End < course2.Course.Time.End {
+			if course1.Course.OverlapsWith(course2.Course) {
 				invalidCourses.Insert(course1)
+				break
 			}
-			//Ne vizsgáljuk többször azokat, amiket már megvizsgáltunk
-			excludedCourses.Insert(course1)
 		}
+		//Ne vizsgáljuk többször azokat, amiket már megvizsgáltunk
+		excludedCourses.Insert(course1)
 	}
 
 	//Lyukasórák
@@ -84,14 +83,13 @@ func (schedule *Schedule) Value() float64 {
 	for _, course1 := range schedule.PickedCourses.Elements() {
 		//Ha megengedtük az ütközést, akkor biztosan a szomszédai között van
 		for _, course2 := range course1.Neighbors.Minus(excludedCourses).Elements() {
-			if course1.Course.Time.Start <= course2.Course.Time.Start && course1.Course.Time.End >= course2.Course.Time.End {
-				invalidCourses.Insert(course2)
-			} else if course1.Course.Time.Start > course2.Course.Time.Start && course1.Course.Time.End < course2.Course.Time.End {
+			if course1.Course.OverlapsWith(course2.Course) {
 				invalidCourses.Insert(course1)
+				break
 			}
-			//Ne vizsgáljuk többször azokat, amiket már megvizsgáltunk
-			excludedCourses.Insert(course1)
 		}
+		//Ne vizsgáljuk többször azokat, amiket már megvizsgáltunk
+		excludedCourses.Insert(course1)
 	}
 
 	for _, course := range schedule.PickedCourses.Minus(invalidCourses).Elements() {
