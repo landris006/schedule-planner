@@ -16,13 +16,14 @@ type Subject struct {
 
 // Kurzus
 type Course struct {
-	Subject    *Subject   `json:"subject,omitempty"` //A JSON-ba ezt így nem lehet beletenni, olvasás után kell végigfutni az összesen
-	Code       string     `json:"code"`
-	Time       Time       `json:"time"`
-	Instructor string     `json:"instructor"`
-	Location   string     `json:"location"`
-	Capacity   int        `json:"capacity"`
-	Type       CourseType `json:"type"` // 0 = 'lecture' | 1 = 'practice'
+	Subject      *Subject   `json:"subject,omitempty"` //A JSON-ba ezt így nem lehet beletenni, olvasás után kell végigfutni az összesen
+	Code         string     `json:"code"`
+	Time         Time       `json:"time"`
+	Instructor   string     `json:"instructor"`
+	Location     string     `json:"location"`
+	Capacity     int        `json:"capacity"`
+	Type         CourseType `json:"type"` // 0 = 'lecture' | 1 = 'practice'
+	AllowOverlap bool       `json:"allow_overlap"`
 }
 
 type Time struct {
@@ -64,11 +65,15 @@ type subjects struct {
 	Subjects []*Subject `json:"subjects"`
 }
 
-func (course_a *Course) OverlapsWith(course_b *Course) bool {
+func (course_a *Course) IsInConflictWith(course_b *Course) bool {
 	//Egy tárgyhoz csak egy gyakorlatot vegyünk fel!
 	if course_a.Subject == course_b.Subject && course_a.Type == course_b.Type {
 		return true
 	}
+	return course_a.AllowOverlap || course_b.AllowOverlap || !course_a.OverlapsWith(course_b)
+}
+
+func (course_a *Course) OverlapsWith(course_b *Course) bool {
 
 	if course_a.Time.Day == course_b.Time.Day {
 		//Leggyakrabban amikor ütköznek, akkor pont ugyanakkor kezdődnek és végződnek
