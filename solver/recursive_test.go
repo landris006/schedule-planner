@@ -1,23 +1,12 @@
 package solver
 
 import (
-	"fmt"
 	"strconv"
 	"testing"
 )
 
 func TestRecursive(t *testing.T) {
-	subjects := ReadSubjects("test_inputs/test_a.json")
-	for _, subject := range subjects {
-		for _, course := range subject.Courses {
-			if course.BreaksNoRules() {
-				course.Subject = subject
-			}
-		}
-	}
-	for _, s := range subjects {
-		fmt.Println(s)
-	}
+	subjects := CourseSubjectAlloc(ReadSubjects("test_inputs/test_a.json"))
 
 	scheduledCourses := RecursiveScheduleFromScratch(subjects)
 

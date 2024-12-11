@@ -1,9 +1,19 @@
 package solver
 
 import (
-	"fmt"
 	"sort"
 )
+
+func CourseSubjectAlloc(subjects []*Subject) []*Subject {
+	for _, subject := range subjects {
+		for _, course := range subject.Courses {
+			if course.BreaksNoRules() {
+				course.Subject = subject
+			}
+		}
+	}
+	return subjects
+}
 
 func RecursiveScheduleFromScratch(subjects []*Subject) Set[*Course] {
 	var tree = MakeEmptySchedule()
@@ -21,10 +31,6 @@ func GetScheduleRecursive(to_add []*Subject, tree *ScheduleTree) *RecSchedule {
 	sort.SliceStable(to_add, func(i, j int) bool {
 		return tree.AddableNumber(to_add[i]) < tree.AddableNumber(to_add[j])
 	})
-	for _, sub := range to_add {
-		fmt.Println(tree.AddableNumber(sub), sub.Name)
-	}
-	fmt.Println()
 	// Ha már nincs mit hozzáadni, add vissza az órarendet
 	if len(to_add) == 0 {
 		return tree.Schedule
