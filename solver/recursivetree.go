@@ -1,7 +1,6 @@
 package solver
 
 import (
-	"fmt"
 	"math"
 	"sort"
 )
@@ -10,17 +9,44 @@ func CourseSubjectAlloc(subjects []*Subject) []*Subject {
 	for _, subject := range subjects {
 		for _, course := range subject.Courses {
 			if course.BreaksNoRules() {
+				// tárgy hozzáadása a kurzushoz
 				course.Subject = subject
 			}
 		}
 	}
-	return subjects
+	// EA+GY tárgyak előadás és gyakorlat különválasztása...
+	var subjectsNew = []*Subject{}
+	for _, subject := range subjects {
+		courseType := subject.Courses[0].Type
+		toSplit := false
+		for _, course := range subject.Courses {
+			if course.Type != courseType {
+				toSplit = true
+			}
+		}
+		if !toSplit {
+			subjectsNew = append(subjectsNew, subject)
+		} else {
+			lectureSubject := Subject{}
+			practiceSubject := Subject{}
+			for _, course := range subject.Courses {
+				if course.Type == 0 {
+					lectureSubject.Courses = append(lectureSubject.Courses, course)
+				} else {
+					practiceSubject.Courses = append(practiceSubject.Courses, course)
+				}
+			}
+			subjectsNew = append(subjectsNew, &lectureSubject)
+			subjectsNew = append(subjectsNew, &practiceSubject)
+		}
+	}
+
+	return subjectsNew
 }
 
 func RecursiveScheduleFromScratch(subjects []*Subject) Set[*Course] {
 	var tree = MakeEmptySchedule()
-	schedule, value := GetScheduleRecursive(subjects, tree)
-	fmt.Printf("Végleges value: %v\n\n", value)
+	schedule, _ := GetScheduleRecursive(subjects, tree)
 
 	if schedule != nil {
 		return schedule.Courses
