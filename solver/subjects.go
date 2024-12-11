@@ -74,6 +74,15 @@ func (course_a *Course) IsInConflictWith(course_b *Course) bool {
 	return course_a.AllowOverlap || course_b.AllowOverlap || course_a.OverlapsWith(course_b)
 }
 
+func (course *Course) Insertable(courseSet Set[*Course]) bool {
+	for _, c := range courseSet.Elements() {
+		if course.IsInConflictWith(c) {
+			return false
+		}
+	}
+	return true
+}
+
 func (course_a *Course) OverlapsWith(course_b *Course) bool {
 
 	if course_a.Time.Day == course_b.Time.Day {
