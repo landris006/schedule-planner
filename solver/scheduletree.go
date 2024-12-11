@@ -15,11 +15,22 @@ func MakeEmptySchedule() *ScheduleTree {
 	return &tree
 }
 
-func (tree *ScheduleTree) addChildren(subject *Subject) {
+func (tree *ScheduleTree) AddChildren(subject *Subject) {
 	for _, course := range subject.Courses {
 		if course.Insertable(tree.Schedule.Courses) {
+			tree.Schedule.Courses.Insert(course)
 			child := ScheduleTree{tree.Schedule, []*ScheduleTree{}}
 			tree.Children = append(tree.Children, &child)
 		}
 	}
+}
+
+func (tree *ScheduleTree) AddableNumber(subject *Subject) int {
+	out := 0
+	for _, course := range subject.Courses {
+		if course.Insertable(tree.Schedule.Courses) {
+			out++
+		}
+	}
+	return out
 }
