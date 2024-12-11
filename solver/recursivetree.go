@@ -1,6 +1,8 @@
 package solver
 
 import (
+	"fmt"
+	"math"
 	"sort"
 )
 
@@ -17,7 +19,8 @@ func CourseSubjectAlloc(subjects []*Subject) []*Subject {
 
 func RecursiveScheduleFromScratch(subjects []*Subject) Set[*Course] {
 	var tree = MakeEmptySchedule()
-	schedule := GetScheduleRecursive(subjects, tree)
+	schedule, value := GetScheduleRecursive(subjects, tree)
+	fmt.Printf("Végleges value: %v\n\n", value)
 
 	if schedule != nil {
 		return schedule.Courses
@@ -26,27 +29,32 @@ func RecursiveScheduleFromScratch(subjects []*Subject) Set[*Course] {
 	}
 }
 
-func GetScheduleRecursive(to_add []*Subject, tree *ScheduleTree) *RecSchedule {
+func GetScheduleRecursive(to_add []*Subject, tree *ScheduleTree) (*RecSchedule, float64) {
 	// Rendezd a tárgyakat kurzusok szerint növekvő sorrendbe
 	sort.SliceStable(to_add, func(i, j int) bool {
 		return tree.AddableNumber(to_add[i]) < tree.AddableNumber(to_add[j])
 	})
 	// Ha már nincs mit hozzáadni, add vissza az órarendet
 	if len(to_add) == 0 {
-		return tree.Schedule
+		return tree.Schedule, RecScheduleToSchedule(tree.Schedule).Value()
 	}
 	// Ha nem lehet órát hozzáadni, nem lehet valid órarendet készíteni ezen az ágon
 	if tree.AddableNumber(to_add[0]) == 0 {
-		return nil
+		return nil, -1
 	}
 	// Add hozzá a kurzust
 	tree.AddChildren(to_add[0])
+
+	var bestValue = float64(math.Inf(-1))
+	var bestChild *RecSchedule = nil
 	for _, child := range tree.Children {
-		schedule := GetScheduleRecursive(to_add[1:], child)
+		schedule, value := GetScheduleRecursive(to_add[1:], child)
 		if schedule != nil {
-			return schedule
+			if value > bestValue {
+				bestValue = value
+				bestChild = schedule
+			}
 		}
 	}
-	// Ide nem kéne eljutni, de a fordító kényes
-	return nil
+	return bestChild, bestValue
 }
