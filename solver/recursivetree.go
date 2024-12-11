@@ -9,7 +9,11 @@ func RecursiveScheduleFromScratch(subjects []*Subject) Set[*Course] {
 	var tree = MakeEmptySchedule()
 	schedule := GetScheduleRecursive(subjects, tree)
 
-	return schedule.Courses
+	if schedule != nil {
+		return schedule.Courses
+	} else {
+		return EmptySet[*Course]()
+	}
 }
 
 func GetScheduleRecursive(to_add []*Subject, tree *ScheduleTree) *RecSchedule {
