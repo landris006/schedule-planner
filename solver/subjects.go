@@ -32,6 +32,11 @@ type Time struct {
 	Day   Weekday `json:"day"`   // 0 = Sunday, 1 = Monday, 2 = Tuesday, 3 = Wednesday, 4 = Thursday, 5 = Friday, 6 = Saturday
 }
 
+// Szűrő - intervallum mikor ne legyen óra
+type Filter struct {
+	Time Time `json:"time"`
+}
+
 // A Golang nem támogatja az Enum-ot, workaround:
 // https://builtin.com/software-engineering-perspectives/golang-enum
 type Weekday int
@@ -63,6 +68,10 @@ func (ct CourseType) ordinal() int {
 
 type subjects struct {
 	Subjects []*Subject `json:"subjects"`
+}
+
+type filters struct {
+	Filters []*Filter `json:"filters"`
 }
 
 func (course_a *Course) IsInConflictWith(course_b *Course) bool {
@@ -101,9 +110,36 @@ func (course_a *Course) OverlapsWith(course_b *Course) bool {
 	return false
 }
 
+func (course *Course) ApplyFilter(f *Filter) bool {
+	if course.Time.Day == f.Time.Day {
+		if course.Time.Start == f.Time.Start && course.Time.End == f.Time.End {
+			return true
+		}
+
+		if course.Time.Start > f.Time.Start && course.Time.Start < f.Time.End {
+			return true
+		}
+		if course.Time.End > f.Time.Start && course.Time.End < f.Time.End {
+			return true
+		}
+		if f.Time.Start > course.Time.Start && f.Time.Start < course.Time.End {
+			return true
+		}
+		if f.Time.End > course.Time.Start && f.Time.End < course.Time.End {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Ide majd később kerülnek a kurzusra vonatkozó szűrők
-func (course *Course) BreaksNoRules() bool {
-	return true
+func (course *Course) BreaksNoRules(f []*Filter) bool {
+	var ok = true
+	for _, filter := range f {
+		ok = ok && !course.ApplyFilter(filter)
+	}
+	return ok
 }
 
 // https://tutorialedge.net/golang/parsing-json-with-golang/
@@ -130,4 +166,30 @@ func ReadSubjects(filepath string) []*Subject {
 	_ = json.Unmarshal(byteValue, &_subjects)
 
 	return _subjects.Subjects
+}
+
+func ReadFilters(filepath string) []*Filter {
+
+	// Open our jsonFile
+	jsonFile, err := os.Open(filepath)
+	// if we os.Open returns an error then handle it
+	if err != nil {
+		fmt.Println(err)
+		return []*Filter{}
+	}
+
+	defer jsonFile.Close()
+
+	// read our opened xmlFile as a byte array.
+	byteValue, _ := io.ReadAll(jsonFile)
+
+	// we initialize our Users array
+	var _filters filters
+
+	// we unmarshal our byteArray which contains our
+	// jsonFile's content into 'users' which we defined above
+	_ = json.Unmarshal(byteValue, &_filters)
+
+	return _filters.Filters
+
 }
