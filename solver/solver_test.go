@@ -8,7 +8,7 @@ import (
 func TestSolver(t *testing.T) {
 	for i := 0; i < 1; i++ {
 		var courseGraph = CourseGraph{}
-		courseGraph.BuildGraph(ReadSubjects("test_inputs/test_a.json"))
+		courseGraph.BuildGraph(ReadSubjects("test_inputs/test_a.json"),ReadFilters("test_inputs/test_a.json"))
 
 		var scheduledCourses = CreateScheduleFromScratch(&courseGraph)
 

@@ -9,10 +9,10 @@ type CourseGraph struct {
 	Nodes []*CourseNode
 }
 
-func (graph *CourseGraph) BuildGraph(subjects []*Subject) {
+func (graph *CourseGraph) BuildGraph(subjects []*Subject, filters []*Filter) {
 	for _, subject := range subjects {
 		for _, course := range subject.Courses {
-			if course.BreaksNoRules() {
+			if course.BreaksNoRules(filters) {
 				course.Subject = subject
 				graph.Nodes = append(graph.Nodes, &CourseNode{course, EmptySet[*CourseNode]()})
 			}
