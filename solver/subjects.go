@@ -24,6 +24,7 @@ type Course struct {
 	Capacity     int        `json:"capacity"`
 	Type         CourseType `json:"type"` // 0 = 'lecture' | 1 = 'practice'
 	AllowOverlap bool       `json:"allow_overlap"`
+	Fix          bool       `json:"fix"` //felhasznalo altal felvett fix kurzus
 }
 
 type Time struct {
@@ -137,7 +138,7 @@ func (course *Course) ApplyFilter(f *Filter) bool {
 func (course *Course) BreaksNoRules(f []*Filter) bool {
 	var ok = true
 	for _, filter := range f {
-		ok = ok && !course.ApplyFilter(filter)
+		ok = ok && (!course.ApplyFilter(filter) || course.Fix) //fix kurzusokra ne legyen a szűrő
 	}
 	return ok
 }

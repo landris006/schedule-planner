@@ -14,7 +14,8 @@
                     "type": 0,
                     "location": "Déli Tömb 1-110 Mendöl Tibor terem",
                     "capacity": 30,
-                    "instructor": "Ligeti Péter"
+                    "instructor": "Ligeti Péter",
+                    "fix":true
                 },
                 {
                     "time": {
@@ -26,7 +27,8 @@
                     "type": 1,
                     "location": "Déli Tömb 1-110 Mendöl Tibor terem",
                     "capacity": 30,
-                    "instructor": "Ligeti Péter"
+                    "instructor": "Ligeti Péter",
+                    "fix": true
                 }
             ]
         },
