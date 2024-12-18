@@ -166,6 +166,14 @@ func QuickExtendSchedule(pickedCourses Set[*CourseNode], allCourses Set[*CourseN
 func CreateQuickScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
 	var schedule = Schedule{EmptySet[*CourseNode](), CreateSet(graph.Nodes...)}
 
+	//eloszor a fix kurzusok
+	for _, node := range schedule.PickableCourses.Elements() {
+		if node.Course.Fix {
+			schedule.PickedCourses.Insert(node)
+			schedule.PickableCourses = schedule.PickableCourses.Intersection(node.Neighbors)
+		}
+	}
+
 	for schedule.PickableCourses.Size() > 0 {
 		//Kiértékelések
 		var bestValue = int64(math.Inf(-1))
