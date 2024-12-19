@@ -14,3 +14,32 @@
   /* --fc-today-bg-color: transparent; */
   /* --fc-event-border-color: #000; */
 }
+
+td.parent-line {
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: 0.75rem;
+    width: 1px;
+    height: 101%;
+    background-color: white;
+    pointer-events: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0.75rem;
+    width: 5px;
+    height: 1px;
+    background-color: white;
+    pointer-events: none;
+  }
+}
+
+tr.subject-row + tr td.parent-line::before {
+  top: 0;
+  height: 51%;
+}

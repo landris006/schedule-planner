@@ -310,6 +310,14 @@ export const labels = {
     hu: 'Eltávolítás a tervezőből',
     en: 'Remove from planner',
   },
+  SAVED_SUBJECTS: {
+    hu: 'Mentett tantárgyak',
+    en: 'Saved subjects',
+  },
+  CALENDAR: {
+    hu: 'Naptár',
+    en: 'Calendar',
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type Labels = typeof labels;
