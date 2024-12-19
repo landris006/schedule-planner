@@ -6,17 +6,21 @@ import (
 	"schedule-planner/solver"
 )
 
-func Solver(writer http.ResponseWriter, request *http.Request) {
-	var subjectsInput []*solver.Subject
+type SolverRequest struct {
+	Subjects []*solver.Subject `json:"subjects"`
+	Filters  []*solver.Filter  `json:"filters"`
+}
 
-	err := json.NewDecoder(request.Body).Decode(&subjectsInput)
+func Solver(writer http.ResponseWriter, request *http.Request) {
+	var requestBody SolverRequest
+	err := json.NewDecoder(request.Body).Decode(&requestBody)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	var courseGraph = solver.CourseGraph{}
-	courseGraph.BuildGraph(subjectsInput)
+	courseGraph.BuildGraph(requestBody.Subjects, requestBody.Filters)
 
 	var scheduledCourses = solver.CreateScheduleFromScratch(&courseGraph).Elements()
 

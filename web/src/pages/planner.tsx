@@ -1,7 +1,11 @@
 import Button from '@/components/button';
 import Calendar from '@/components/calendar';
 import { useLabel } from '@/contexts/label/label-context';
-import { CourseType, Subject } from '@/contexts/subjects/subjects-context';
+import {
+  CourseType,
+  SolverRequest,
+  Subject,
+} from '@/contexts/subjects/subjects-context';
 import { usePlannerStore } from '@/stores/planner';
 import { floatToHHMM, useQuery } from '@/utils';
 import { EventContentArg } from '@fullcalendar/core/index.js';
@@ -15,7 +19,7 @@ export default function Planner() {
   const { savedSubjects, setResults, calendarSettings, setSlotDuration } =
     usePlannerStore();
   const { labels } = useLabel();
-  const solverQuery = useQuery<Subject[], Subject[]>({
+  const solverQuery = useQuery<Subject[], SolverRequest>({
     fetcher: callSolver,
     onSuccess: (data) => {
       setResults(data);
@@ -66,9 +70,12 @@ export default function Planner() {
             icon={<MagnifyingGlassIcon width={20} height={20} />}
             isLoading={solverQuery.isLoading}
             onClick={() => {
-              solverQuery.fetch(
-                savedSubjects.filter((s) => s.courses.every((c) => !!c.time)),
-              );
+              solverQuery.fetch({
+                subjects: savedSubjects.filter((s) =>
+                  s.courses.every((c) => !!c.time),
+                ),
+                filters: [],
+              });
             }}
           />
         </div>
@@ -116,7 +123,7 @@ export default function Planner() {
   );
 }
 
-async function callSolver(queryOptions: Subject[]) {
+async function callSolver(queryOptions: SolverRequest) {
   return fetch('/api/solver', {
     method: 'POST',
     headers: {

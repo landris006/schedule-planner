@@ -21,11 +21,20 @@ export const SEMESTERS: string[] = Array.from(
     `${year - Math.round(i / 2)}-${year + 1 - Math.round(i / 2)}-${(i % 2) + 1}`, // 🤮
 );
 
+export type SolverRequest = {
+  subjects: Subject[];
+  filters: Filter[];
+};
+
 export type Subject = {
   code: string;
   name: string;
   courses: Course[];
   color?: string;
+};
+
+export type Filter = {
+  time: Time;
 };
 
 export enum CourseType {
