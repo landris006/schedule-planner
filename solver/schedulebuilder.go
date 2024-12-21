@@ -37,31 +37,43 @@ func (schedule *Schedule) EvaluatePick(pickedCourses []*CourseNode) int64 {
 	excludedCourses := EmptySet[*CourseNode]()
 
 	//Szűrjük ki azokat az órákat, amik ütköznének, ha nem lenne megengedett az ütközés
-	for _, course1 := range schedule.PickedCourses.Elements() {
+	for _, node1 := range schedule.PickedCourses.Elements() {
+		group2 := EmptySet[*Course]()
 		//Ha megengedtük az ütközést, akkor biztosan a szomszédai között van
-		for _, course2 := range course1.Neighbors.Minus(excludedCourses).Elements() {
-			if course1.Course.OverlapsWith(course2.Course) {
-				invalidCourses.Insert(course1)
-				break
-			}
+		for _, node2 := range node1.Neighbors.Minus(excludedCourses).Elements() {
+			group2 = group2.Union(node2.Courses)
 		}
-		//Ne vizsgáljuk többször azokat, amiket már megvizsgáltunk
-		excludedCourses.Insert(course1)
+
+		for _, course1 := range node1.Courses.Elements() {
+			for _, course2 := range group2.Elements() {
+				if course1.OverlapsWith(course2) {
+					invalidCourses.Insert(node1)
+					break
+				}
+			}
+			//Ne vizsgáljuk többször azokat, amiket már megvizsgáltunk
+			excludedCourses.Insert(node1)
+		}
 	}
 
 	//Lyukasórák
 	//0, 1 vagy 2 szomszédja lehet az új órának -> a (szomszéd-1) előjelet ad a súlyozásnak
 	//Szerintem a súlyozás jobb, ha függ az idáig meglevő kurzusokkal: minél több kurzus van, annál inkább javít vagy ront a lyukasóra
 	//Nem ad pontos értéket, ha több, rögtön egymás után következő órát adunk hozzá egyszerre az órarendhez
-	for _, pickedCourse := range CreateSet(pickedCourses...).Minus(invalidCourses).Elements() {
-		var neighborValue = -1
-		for _, course := range schedule.PickedCourses.Elements() {
-			if course.Course.Time.Day == pickedCourse.Course.Time.Day &&
-				(course.Course.Time.Start == pickedCourse.Course.Time.End || course.Course.Time.End == pickedCourse.Course.Time.Start) {
-				neighborValue++
+	for _, pickedCourseNode := range CreateSet(pickedCourses...).Minus(invalidCourses).Elements() {
+		for _, pickedCourse := range pickedCourseNode.Courses.Elements() {
+			var neighborValue = -1
+			for _, node := range schedule.PickedCourses.Elements() {
+				for _, course := range node.Courses.Elements() {
+					if course.Time.Day == pickedCourse.Time.Day &&
+						(course.Time.Start == pickedCourse.Time.End || course.Time.End == pickedCourse.Time.Start) {
+						neighborValue++
+					}
+				}
+
 			}
+			sum += neighborValue * schedule.PickedCourses.Size()
 		}
-		sum += neighborValue * schedule.PickedCourses.Size()
 	}
 
 	return int64(sum)
@@ -76,43 +88,52 @@ func (schedule *Schedule) CountGaps() int {
 	excludedCourses := EmptySet[*CourseNode]()
 
 	//Szűrjük ki azokat az órákat, amik ütköznének, ha nem lenne megengedett az ütközés
-	for _, course1 := range schedule.PickedCourses.Elements() {
+	for _, node1 := range schedule.PickedCourses.Elements() {
+		group2 := EmptySet[*Course]()
 		//Ha megengedtük az ütközést, akkor biztosan a szomszédai között van
-		for _, course2 := range course1.Neighbors.Minus(excludedCourses).Elements() {
-			if course1.Course.OverlapsWith(course2.Course) {
-				invalidCourses.Insert(course1)
-				break
-			}
+		for _, node2 := range node1.Neighbors.Minus(excludedCourses).Elements() {
+			group2 = group2.Union(node2.Courses)
 		}
-		//Ne vizsgáljuk többször azokat, amiket már megvizsgáltunk
-		excludedCourses.Insert(course1)
+
+		for _, course1 := range node1.Courses.Elements() {
+			for _, course2 := range group2.Elements() {
+				if course1.OverlapsWith(course2) {
+					invalidCourses.Insert(node1)
+					break
+				}
+			}
+			//Ne vizsgáljuk többször azokat, amiket már megvizsgáltunk
+			excludedCourses.Insert(node1)
+		}
 	}
 
-	for _, course := range schedule.PickedCourses.Minus(invalidCourses).Elements() {
-		day := course.Course.Time.Day.ordinal()
-		if !days.Contains(day) {
-			days.Insert(day)
-			endPoints[day] = EmptySet[float32]()
-		}
+	for _, course_node := range schedule.PickedCourses.Minus(invalidCourses).Elements() {
+		for _, course := range course_node.Courses.Elements() {
+			day := course.Time.Day.ordinal()
+			if !days.Contains(day) {
+				days.Insert(day)
+				endPoints[day] = EmptySet[float32]()
+			}
 
-		//Az esti órák között van negyed óra szünet => kerekítsünk fél órákra, hogy "összeérjenek"
-		startTime := course.Course.Time.Start
-		endTime := course.Course.Time.End
+			//Az esti órák között van negyed óra szünet => kerekítsünk fél órákra, hogy "összeérjenek"
+			startTime := course.Time.Start
+			endTime := course.Time.End
 
-		if startTime >= 16 {
-			startTime = float32(math.Floor(float64(2*startTime)) / 2)
-			endTime = float32(math.Ceil(float64(2*endTime)) / 2)
-		}
+			if startTime >= 16 {
+				startTime = float32(math.Floor(float64(2*startTime)) / 2)
+				endTime = float32(math.Ceil(float64(2*endTime)) / 2)
+			}
 
-		if endPoints[day].Contains(startTime) {
-			endPoints[day].Remove(startTime)
-		} else {
-			endPoints[day].Insert(startTime)
-		}
-		if endPoints[day].Contains(endTime) {
-			endPoints[day].Remove(endTime)
-		} else {
-			endPoints[day].Insert(endTime)
+			if endPoints[day].Contains(startTime) {
+				endPoints[day].Remove(startTime)
+			} else {
+				endPoints[day].Insert(startTime)
+			}
+			if endPoints[day].Contains(endTime) {
+				endPoints[day].Remove(endTime)
+			} else {
+				endPoints[day].Insert(endTime)
+			}
 		}
 	}
 
@@ -168,9 +189,12 @@ func CreateQuickScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
 
 	//eloszor a fix kurzusok
 	for _, node := range schedule.PickableCourses.Elements() {
-		if node.Course.Fix {
-			schedule.PickedCourses.Insert(node)
-			schedule.PickableCourses = schedule.PickableCourses.Intersection(node.Neighbors)
+		for _, course := range node.Courses.Elements() {
+			if course.Fix {
+				schedule.PickedCourses.Insert(node)
+				schedule.PickableCourses = schedule.PickableCourses.Intersection(node.Neighbors)
+				break
+			}
 		}
 	}
 
@@ -235,7 +259,6 @@ func BK(clique Set[*CourseNode], available_vertices Set[*CourseNode], excluded_v
 }
 
 func CreateScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
-
 	//Rendezés
 	//https://dl.acm.org/doi/pdf/10.1145/2402.322385 418.oldal
 	courseDegMap := make(map[*CourseNode]float64)

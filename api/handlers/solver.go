@@ -33,17 +33,19 @@ func Solver(writer http.ResponseWriter, request *http.Request) {
 func courseNodesToSubjects(courseNodes []*solver.CourseNode) []*solver.Subject {
 	var subjectMap = make(map[string]*solver.Subject)
 	for _, courseNode := range courseNodes {
-		var subjectCode = courseNode.Course.Subject.Code
+		for _, course := range courseNode.Courses.Elements() {
+			var subjectCode = course.Subject.Code
 
-		if _, ok := subjectMap[subjectCode]; !ok {
-			courseNode.Course.Subject.Courses = make([]*solver.Course, 0)
-			subjectMap[subjectCode] = courseNode.Course.Subject
+			if _, ok := subjectMap[subjectCode]; !ok {
+				course.Subject.Courses = make([]*solver.Course, 0)
+				subjectMap[subjectCode] = course.Subject
+			}
+
+			var subject = subjectMap[subjectCode]
+
+			course.Subject = nil
+			subject.Courses = append(subject.Courses, course)
 		}
-
-		var subject = subjectMap[subjectCode]
-
-		courseNode.Course.Subject = nil
-		subject.Courses = append(subject.Courses, courseNode.Course)
 	}
 
 	var subjectsArray = make([]*solver.Subject, 0, len(subjectMap))
