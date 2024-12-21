@@ -129,11 +129,7 @@ export default function Planner() {
               subject.courses
                 .filter((c) => Object.values(c.time).every((v) => !!v))
                 .map((course) => ({
-                  title: `
-                    ${subject.name} ${course.code}{0}
-                    ${course.type === CourseType.Lecture ? labels.LECTURE : labels.PRACTICE}{0}
-                    ${course.place}{0}
-                    ${course.instructor}`,
+                  title: `${subject.name}`,
                   daysOfWeek: [course.time!.day],
                   startTime: floatToHHMM(course.time.start!),
                   duration: floatToHHMM(course.time.end! - course.time.start!),
@@ -182,21 +178,36 @@ function EventItem({ eventInfo }: { eventInfo: EventContentArg }) {
       {createPortal(
         <div ref={tooltipRef} className="absolute z-50">
           {isShowingTooltip && (
-            <div className="w-60 rounded-md bg-base-100 p-2 shadow-lg">
+            <div className="w-72 rounded-md bg-base-100 p-2 shadow-lg">
               <div className="flex gap-2">
                 <div className="flex flex-col">
-                  <p className="font-bold">{eventInfo.timeText}</p>
+                  <p className="flex justify-between overflow-hidden text-ellipsis font-bold">
+                    {course.time.start && course.time.end
+                      ? `${floatToHHMM(course.time.start)}-${floatToHHMM(course.time.end)}`
+                      : '-'}
+
+                    {course.type === CourseType.Lecture && (
+                      <span className="badge badge-accent badge-outline">
+                        {labels.LECTURE}
+                      </span>
+                    )}
+                    {course.type === CourseType.Practice && (
+                      <span className="badge badge-info badge-outline">
+                        {labels.PRACTICE}
+                      </span>
+                    )}
+                  </p>
+
                   <p className="overflow-hidden text-ellipsis">
-                    {eventInfo.event.title.split('{0}')[0]}
+                    {eventInfo.event.title}
+                  </p>
+                  <p className="overflow-hidden text-ellipsis">{course.code}</p>
+
+                  <p className="overflow-hidden text-ellipsis">
+                    {course.instructor}
                   </p>
                   <p className="overflow-hidden text-ellipsis">
-                    {eventInfo.event.title.split('{0}')[1]}
-                  </p>
-                  <p className="overflow-hidden text-ellipsis">
-                    {eventInfo.event.title.split('{0}')[3]}
-                  </p>
-                  <p className="overflow-hidden text-ellipsis">
-                    {eventInfo.event.title.split('{0}')[2]}
+                    {course.place}
                   </p>
                 </div>
               </div>
@@ -223,7 +234,7 @@ function EventItem({ eventInfo }: { eventInfo: EventContentArg }) {
               tooltipRef.current.style.right =
                 window.innerWidth - left - width + 'px';
               tooltipRef.current.style.bottom =
-                window.innerHeight - top - window.scrollY + 'px';
+                window.innerHeight - top - window.scrollY + 15 + 'px';
               setIsShowingTooltip(true);
             }}
             onMouseLeave={() => {
@@ -239,16 +250,28 @@ function EventItem({ eventInfo }: { eventInfo: EventContentArg }) {
               </span>
             )}
 
-            <p className="font-bold">{eventInfo.timeText}</p>
-            <p className="overflow-hidden text-ellipsis">
-              {eventInfo.event.title.split('{0}')[0]}
+            <p className="flex justify-between font-bold">
+              {course.time.start && course.time.end
+                ? `${floatToHHMM(course.time.start)}-${floatToHHMM(course.time.end)}`
+                : '-'}
+
+              {course.type === CourseType.Lecture && (
+                <span className="overflow-hidden text-ellipsis">
+                  {labels.LECTURE}
+                </span>
+              )}
+              {course.type === CourseType.Practice && (
+                <span className="overflow-hidden text-ellipsis">
+                  {labels.PRACTICE}
+                </span>
+              )}
             </p>
             <p className="overflow-hidden text-ellipsis">
-              {eventInfo.event.title.split('{0}')[1]}
+              {eventInfo.event.title}
             </p>
-            <p className="overflow-hidden text-ellipsis">
-              {eventInfo.event.title.split('{0}')[2]}
-            </p>
+            <p className="overflow-hidden text-ellipsis">{course.code}</p>
+
+            <p className="overflow-hidden text-ellipsis">{course.place}</p>
           </div>
         )}
       />
