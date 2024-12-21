@@ -1,7 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { Subject } from './contexts/subjects/subjects-context';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
