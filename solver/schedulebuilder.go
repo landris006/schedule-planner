@@ -184,7 +184,7 @@ func QuickExtendSchedule(pickedCourses Set[*CourseNode], allCourses Set[*CourseN
 	return schedule.PickedCourses
 }
 
-func CreateQuickScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
+func CreateQuickSchedule(graph *CourseGraph) Set[*CourseNode] {
 	var schedule = Schedule{EmptySet[*CourseNode](), CreateSet(graph.Nodes...)}
 
 	//eloszor a fix kurzusok
@@ -193,7 +193,6 @@ func CreateQuickScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
 			if course.Fix {
 				schedule.PickedCourses.Insert(node)
 				schedule.PickableCourses = schedule.PickableCourses.Intersection(node.Neighbors)
-				break
 			}
 		}
 	}
@@ -258,10 +257,25 @@ func BK(clique Set[*CourseNode], available_vertices Set[*CourseNode], excluded_v
 	}
 }
 
-func CreateScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
+func CreateSchedule(graph *CourseGraph) Set[*CourseNode] {
 	//Rendezés
 	//https://dl.acm.org/doi/pdf/10.1145/2402.322385 418.oldal
 	courseDegMap := make(map[*CourseNode]float64)
+
+	//eloszor a fix kurzusok
+	fixCourses := EmptySet[*CourseNode]()
+	validNodes := CreateSet(graph.Nodes...)
+	for _, node := range graph.Nodes {
+		for _, course := range node.Courses.Elements() {
+			if course.Fix {
+				fixCourses.Insert(node)
+				validNodes = validNodes.Intersection(node.Neighbors)
+				break
+			}
+		}
+	}
+	graph.Nodes = validNodes.Elements()
+
 	remainingNodes := CreateSet(graph.Nodes...)
 
 	for remainingNodes.Size() > 0 {
@@ -288,7 +302,7 @@ func CreateScheduleFromScratch(graph *CourseGraph) Set[*CourseNode] {
 
 	//https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm
 	max_cliques := []Schedule{}
-	BK(EmptySet[*CourseNode](), CreateSet(graph.Nodes...), EmptySet[*CourseNode](), &max_cliques, &courseDegMap)
+	BK(fixCourses, CreateSet(graph.Nodes...), EmptySet[*CourseNode](), &max_cliques, &courseDegMap)
 
 	var bestValue = float64(math.Inf(-1))
 	var bestElements = []Schedule{}
