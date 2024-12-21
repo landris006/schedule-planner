@@ -1,4 +1,4 @@
-import { Subject } from '@/contexts/subjects/subjects-context';
+import { Course, Subject } from '@/contexts/subjects/subjects-context';
 import { generateColor } from '@/utils';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -12,6 +12,10 @@ type PlannerState = {
   addSubject: (subject: Subject) => void;
   setResults: (results: Subject[]) => void;
   removeSubject: (subject: Subject) => void;
+  updateSubject: (
+    subject: { code: Subject['code'] } & Partial<Subject>,
+  ) => void;
+  updateCourse: (course: { code: Course['code'] } & Partial<Course>) => void;
   setSlotDuration: (slotDuration: number) => void;
 };
 
@@ -47,6 +51,35 @@ export const usePlannerStore = create<PlannerState>()(
           savedSubjects: state.savedSubjects.filter(
             (s) => s.code !== subject.code,
           ),
+        }));
+      },
+      updateSubject: (subject) => {
+        set((state) => ({
+          ...state,
+          savedSubjects: state.savedSubjects.map((s) =>
+            s.code === subject.code
+              ? {
+                  ...s,
+                  ...subject,
+                }
+              : s,
+          ),
+        }));
+      },
+      updateCourse: (course) => {
+        set((state) => ({
+          ...state,
+          savedSubjects: state.savedSubjects.map((s) => ({
+            ...s,
+            courses: s.courses.map((c) =>
+              c.code === course.code
+                ? {
+                    ...c,
+                    ...course,
+                  }
+                : c,
+            ),
+          })),
         }));
       },
       setSlotDuration: (slotDuration) => {

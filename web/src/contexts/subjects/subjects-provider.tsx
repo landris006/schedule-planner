@@ -8,7 +8,7 @@ import {
   Time,
   CourseType,
 } from '@/contexts/subjects/subjects-context';
-import { useQuery } from '@/utils';
+import { hhmmToFloat, useQuery } from '@/utils';
 import { useQueryState } from 'nuqs';
 
 export default function SubjectsProvider({
@@ -124,7 +124,7 @@ function parseSubjects(htmlString: string) {
       return;
     }
 
-    const time = parseTime(timeString);
+    const time = parseTime(timeString) ?? {};
 
     const course: Course = {
       code: code,
@@ -181,8 +181,3 @@ const DAY_MAP = {
   Péntek: 5,
   Szombat: 6,
 };
-
-function hhmmToFloat(hhmm: string) {
-  const [hour, minute] = hhmm.split(':');
-  return parseFloat(hour) + parseFloat(minute) / 60;
-}
