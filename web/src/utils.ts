@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from 'clsx';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
+import { Subject } from './contexts/subjects/subjects-context';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -66,10 +67,22 @@ export function parseCookie(cookieString: string): Record<string, string> {
   return parsedCookie;
 }
 
+/**
+ * Converts a float number to a string in the format "HH:MM".
+ * (Does not check if the result is a valid time.)
+ **/
 export function floatToHHMM(float: number) {
   const hour = Math.floor(float);
   const minute = Math.floor((float - hour) * 60);
-  return `${hour}:${minute.toString().padStart(2, '0')}`;
+  return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Converts a string in the format "HH:MM" to a float number.
+ **/
+export function hhmmToFloat(hhmm: string) {
+  const [hour, minute] = hhmm.split(':');
+  return parseFloat(hour) + parseFloat(minute) / 60;
 }
 
 export function generateColor(code: string) {

@@ -43,18 +43,19 @@ export enum CourseType {
 }
 
 export type Course = {
-  time?: Time;
+  time: Time;
   code: string;
   instructor: string;
   place: string;
   capacity: number;
   type: CourseType;
+  fix?: boolean;
 };
 
 export type Time = {
-  start: number;
-  end: number;
-  day: number;
+  start?: number;
+  end?: number;
+  day?: number;
 };
 
 type SubjectsContextType = {

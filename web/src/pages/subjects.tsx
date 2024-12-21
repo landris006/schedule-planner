@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react';
 import Button from '@/components/button';
 import {
+  ArrowUpIcon,
   MagnifyingGlassIcon,
   MinusIcon,
   PlusIcon,
@@ -15,6 +16,8 @@ import {
 } from '@/contexts/subjects/subjects-context';
 import { usePlannerStore } from '@/stores/planner';
 import { floatToHHMM } from '@/utils';
+import deepEqual from 'fast-deep-equal';
+import Tooltip from '@/components/tooltip';
 
 export default function Subjects() {
   const { labels } = useLabel();
@@ -141,7 +144,14 @@ export default function Subjects() {
             (c) => c.type === CourseType.Practice,
           );
 
-          const isSaved = savedSubjects.find((s) => s.code === subject.code);
+          const savedSubject = savedSubjects.find(
+            (s) => s.code === subject.code,
+          );
+          const isSaved = !!savedSubject;
+
+          const { color: _, ...savedSubjectWithoutColor } = savedSubject ?? {};
+          const isChanged =
+            isSaved && !deepEqual(subject, savedSubjectWithoutColor); // TODO: ignore `fix` field
 
           return (
             <div className="card" key={subject.code}>
@@ -149,15 +159,28 @@ export default function Subjects() {
                 <h2 className="card-title">
                   {subject.name} ({subject.code})
                 </h2>
-
-                {isSaved ? (
-                  <Button
-                    className="btn btn-outline btn-error w-min text-nowrap"
-                    label={labels.REMOVE_FROM_PLANNER}
-                    icon={<MinusIcon width={20} height={20} />}
-                    onClick={() => removeSubject(subject)}
-                  />
-                ) : (
+                {isSaved &&
+                  (isChanged ? (
+                    <Button
+                      className="btn btn-outline btn-warning w-min text-nowrap"
+                      label={labels.UPDATE_PLANNER}
+                      tooltip={labels.UPDATE_PLANNER_TOOLTIP}
+                      tooltipDirection="right"
+                      icon={<ArrowUpIcon width={20} height={20} />}
+                      onClick={() => {
+                        removeSubject(subject);
+                        addSubject(subject);
+                      }}
+                    />
+                  ) : (
+                    <Button
+                      className="btn btn-outline btn-error w-min text-nowrap"
+                      label={labels.REMOVE_FROM_PLANNER}
+                      icon={<MinusIcon width={20} height={20} />}
+                      onClick={() => removeSubject(subject)}
+                    />
+                  ))}
+                {!isSaved && (
                   <Button
                     className="btn btn-outline btn-success w-min text-nowrap"
                     label={labels.ADD_TO_PLANNER}
@@ -165,7 +188,6 @@ export default function Subjects() {
                     onClick={() => addSubject(subject)}
                   />
                 )}
-
                 {lectures.length > 0 && (
                   <>
                     <h2 className="card-title">
@@ -187,7 +209,6 @@ export default function Subjects() {
                     </div>
                   </>
                 )}
-
                 {practices.length > 0 && (
                   <>
                     <h2 className="card-title">
@@ -257,7 +278,7 @@ function CourseCard({ course }: { course: Course }) {
 
           <span className="font-bold">{labels.TIME}:</span>
           <span>
-            {course.time
+            {course.time.start && course.time.end
               ? `${floatToHHMM(course.time.start)}-${floatToHHMM(course.time.end)}`
               : '-'}
           </span>

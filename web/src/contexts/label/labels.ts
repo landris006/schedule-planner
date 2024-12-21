@@ -310,6 +310,14 @@ export const labels = {
     hu: 'Eltávolítás a tervezőből',
     en: 'Remove from planner',
   },
+  UPDATE_PLANNER: {
+    hu: 'Tervező frissítése',
+    en: 'Update planner',
+  },
+  UPDATE_PLANNER_TOOLTIP: {
+    hu: 'A tárgy koábban már mentésre került, de azóta módosítva lett.',
+    en: 'The subject is already saved, but it was modified.',
+  },
   SAVED_SUBJECTS: {
     hu: 'Mentett tantárgyak',
     en: 'Saved subjects',
@@ -317,6 +325,34 @@ export const labels = {
   CALENDAR: {
     hu: 'Naptár',
     en: 'Calendar',
+  },
+  EDIT_COURSE: {
+    hu: 'Kurzus szerkesztése',
+    en: 'Edit course',
+  },
+  CODE_REQUIRED: {
+    hu: 'Kód megadása kötelező',
+    en: 'Code required',
+  },
+  START: {
+    hu: 'Kezdet',
+    en: 'Start',
+  },
+  END: {
+    hu: 'Vég',
+    en: 'End',
+  },
+  FIX: {
+    hu: 'Fix',
+    en: 'Fix',
+  },
+  FIX_TOOLTIP: {
+    hu: 'Kikényszeríti a solvert, hogy mindig vegye fel ezt a kurzust.',
+    en: 'Forces the solver to always include this course.',
+  },
+  COLOR: {
+    hu: 'Szín',
+    en: 'Color',
   },
 } satisfies Record<string, Record<Locale, string>>;
 
