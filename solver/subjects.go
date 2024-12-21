@@ -33,7 +33,7 @@ type Time struct {
 	Day   Weekday `json:"day"`   // 0 = Sunday, 1 = Monday, 2 = Tuesday, 3 = Wednesday, 4 = Thursday, 5 = Friday, 6 = Saturday
 }
 
-// Szűrő - intervallum mikor ne legyen óra
+// Szűrő - intervallum: mikor ne legyen óra
 type Filter struct {
 	Time Time `json:"time"`
 }
@@ -76,6 +76,10 @@ type filters struct {
 }
 
 func (course_a *Course) IsInConflictWith(course_b *Course) bool {
+	if course_a.Fix && course_b.Fix {
+		return false
+	}
+
 	//Egy tárgyhoz csak egy gyakorlatot vegyünk fel!
 	if course_a.Subject == course_b.Subject && course_a.Type == course_b.Type {
 		return true
@@ -136,11 +140,17 @@ func (course *Course) ApplyFilter(f *Filter) bool {
 
 // Ide majd később kerülnek a kurzusra vonatkozó szűrők
 func (course *Course) BreaksNoRules(f []*Filter) bool {
-	var ok = true
-	for _, filter := range f {
-		ok = ok && (!course.ApplyFilter(filter) || course.Fix) //fix kurzusokra ne legyen a szűrő
+	if course.Fix {
+		return true
+	} else {
+		for _, filter := range f {
+			if !course.ApplyFilter(filter) {
+				return false
+			}
+		}
 	}
-	return ok
+
+	return true
 }
 
 // https://tutorialedge.net/golang/parsing-json-with-golang/
@@ -170,7 +180,6 @@ func ReadSubjects(filepath string) []*Subject {
 }
 
 func ReadFilters(filepath string) []*Filter {
-
 	// Open our jsonFile
 	jsonFile, err := os.Open(filepath)
 	// if we os.Open returns an error then handle it
@@ -192,5 +201,4 @@ func ReadFilters(filepath string) []*Filter {
 	_ = json.Unmarshal(byteValue, &_filters)
 
 	return _filters.Filters
-
 }
