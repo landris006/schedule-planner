@@ -22,7 +22,7 @@ func Solver(writer http.ResponseWriter, request *http.Request) {
 	var courseGraph = solver.CourseGraph{}
 	courseGraph.BuildGraph(requestBody.Subjects, requestBody.Filters)
 
-	var scheduledCourses = solver.CreateScheduleFromScratch(&courseGraph).Elements()
+	var scheduledCourses = solver.CreateSchedule(&courseGraph).Elements()
 
 	var subjectsResult = courseNodesToSubjects(scheduledCourses)
 
