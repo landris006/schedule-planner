@@ -100,6 +100,9 @@ function MobileNav() {
         <li>
           <NavLink to="/planner">{labels.PLANNER}</NavLink>
         </li>
+        <li>
+          <NavLink to="/results">{labels.RESULTS}</NavLink>
+        </li>
       </ul>
     </div>
   );
