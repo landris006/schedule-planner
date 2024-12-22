@@ -10,6 +10,7 @@ import {
 } from '@/contexts/subjects/subjects-context';
 import { hhmmToFloat, useQuery } from '@/utils';
 import { useQueryState } from 'nuqs';
+import { useCallback, useEffect } from 'react';
 
 export default function SubjectsProvider({
   children,
@@ -20,15 +21,40 @@ export default function SubjectsProvider({
     fetcher: (opts: QueryOptions) => scrapeCouses(opts).then(parseSubjects),
   });
 
+  const [forceSearch, setForceSearch] = useQueryState<boolean>('f', {
+    parse: (value) => value === 'true',
+    defaultValue: false,
+    clearOnDefault: true,
+  });
   const [searchTerm, setSearchTerm] = useQueryState('q', { defaultValue: '' });
-  const [searchMode, setSearchMode] = useQueryState('mode', {
+  const [searchMode, setSearchMode] = useQueryState<
+    (typeof SEARCH_MODES)[number]
+  >('mode', {
     parse: (value) => SEARCH_MODES.find((v) => v === value) ?? SEARCH_MODES[0],
     defaultValue: 'keresnevre',
   });
-  const [semester, setSemester] = useQueryState('semester', {
-    defaultValue: SEMESTERS[0],
-    parse: (value) => SEMESTERS.find((v) => v === value) ?? SEMESTERS[0],
-  });
+  const [semester, setSemester] = useQueryState<(typeof SEMESTERS)[number]>(
+    'semester',
+    {
+      defaultValue: SEMESTERS[0],
+      parse: (value) => SEMESTERS.find((v) => v === value) ?? SEMESTERS[0],
+    },
+  );
+
+  const search = useCallback(() => {
+    subjectsQuery.fetch({
+      term: searchTerm,
+      mode: searchMode,
+      semester: semester,
+    });
+  }, [searchTerm, searchMode, semester, subjectsQuery]);
+
+  useEffect(() => {
+    if (forceSearch) {
+      search();
+      setForceSearch(false);
+    }
+  }, [forceSearch, search, setForceSearch]);
 
   return (
     <SubjectsContext.Provider
@@ -36,16 +62,17 @@ export default function SubjectsProvider({
         subjectsQuery,
         searchTerm,
         setSearchTerm,
-        searchMode: searchMode as (typeof SEARCH_MODES)[number], // cast is only safe because of the checks in `parse` and `setSearchMode`
+        searchMode: searchMode,
         setSearchMode: (value: (typeof SEARCH_MODES)[number]) =>
           SEARCH_MODES.find((v) => v === value)
             ? setSearchMode(value)
             : setSearchMode(SEARCH_MODES[0]),
-        semester: semester as (typeof SEMESTERS)[number], // cast is only safe because of the checks in `parse` and `setSemester`
+        semester: semester,
         setSemester: (value: (typeof SEMESTERS)[number]) =>
           SEMESTERS.find((v) => v === value)
             ? setSemester(value)
             : setSemester(SEMESTERS[0]),
+        search,
       }}
     >
       {children}

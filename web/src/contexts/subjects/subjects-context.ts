@@ -67,6 +67,7 @@ type SubjectsContextType = {
   setSearchMode: (value: (typeof SEARCH_MODES)[number]) => void;
   semester: (typeof SEMESTERS)[number];
   setSemester: (value: (typeof SEMESTERS)[number]) => void;
+  search: () => void;
 };
 
 export const SubjectsContext = createContext<SubjectsContextType | undefined>(

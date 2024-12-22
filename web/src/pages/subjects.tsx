@@ -122,11 +122,7 @@ export default function Subjects() {
             if (subjectsQuery.status === 'loading') {
               return;
             }
-            subjectsQuery.fetch({
-              term: subjectsContext.searchTerm,
-              mode: subjectsContext.searchMode,
-              semester: subjectsContext.semester,
-            });
+            subjectsContext.search();
           }}
         />
       </form>

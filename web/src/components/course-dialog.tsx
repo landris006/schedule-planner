@@ -13,6 +13,7 @@ import React from 'react';
 
 type CourseDialogProps = {
   renderTrigger?: (dialogRef: React.RefObject<HTMLDialogElement>) => ReactNode;
+  onClose?: () => void;
 } & (
   | {
       mode: 'edit';
@@ -40,10 +41,18 @@ export default function CourseDialog({
   courseData: courseToEdit,
   mode,
   renderTrigger,
+  onClose,
 }: CourseDialogProps) {
   const { labels } = useLabel();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const { updateCourse } = usePlannerStore();
+
+  function closeDialog() {
+    dialogRef.current?.close();
+    if (typeof onClose === 'function') {
+      onClose();
+    }
+  }
 
   const days = [
     labels.SUNDAY,
@@ -93,7 +102,7 @@ export default function CourseDialog({
       updateCourse(courseData);
     }
 
-    dialogRef.current?.close();
+    closeDialog();
   }
 
   return (
@@ -104,12 +113,17 @@ export default function CourseDialog({
         <Button
           className="btn-outline btn-info btn-sm"
           icon={<Pencil1Icon width={20} height={20} />}
+          title={labels.EDIT}
           onClick={() => {
             dialogRef.current?.showModal();
           }}
         />
       )}
-      <dialog ref={dialogRef} className="modal text-base-content">
+      <dialog
+        ref={dialogRef}
+        className="modal text-base-content"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-box">
           <form method="dialog">
             {/* if there is a button in form, it will close the modal */}
@@ -241,7 +255,7 @@ export default function CourseDialog({
                 className="btn-ghost btn-outline btn-md"
                 label={labels.CLOSE}
                 onClick={() => {
-                  dialogRef.current?.close();
+                  closeDialog();
                 }}
               />
               {mode !== 'read' && (

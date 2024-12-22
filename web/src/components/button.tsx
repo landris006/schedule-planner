@@ -11,6 +11,7 @@ const tooltipDirectionMap = {
 
 export type ButtonProps = {
   label?: string | React.ReactNode;
+  title?: string;
   icon?: React.ReactNode;
   isLoading?: boolean;
   tooltip?: string;
@@ -18,13 +19,23 @@ export type ButtonProps = {
 } & JSX.IntrinsicElements['button'];
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { label, tooltip, icon, isLoading, className, tooltipDirection, ...props },
+  {
+    label,
+    title,
+    tooltip,
+    icon,
+    isLoading,
+    className,
+    tooltipDirection,
+    ...props
+  },
   ref,
 ) {
   const button = (
     <button
       ref={ref}
       type="button"
+      title={title ? title : typeof label === 'string' ? label : undefined}
       className={cn(
         'btn flex-nowrap',
         {

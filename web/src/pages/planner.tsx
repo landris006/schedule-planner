@@ -5,17 +5,21 @@ import {
   CourseType,
   SolverRequest,
   Subject,
+  useSubjects,
 } from '@/contexts/subjects/subjects-context';
 import { usePlannerStore } from '@/stores/planner';
 import { cn, floatToHHMM, useQuery } from '@/utils';
 import {
   CaretUpIcon,
+  DropdownMenuIcon,
   EyeOpenIcon,
+  GearIcon,
   MagnifyingGlassIcon,
+  PlusIcon,
   TrashIcon,
 } from '@radix-ui/react-icons';
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import CourseDialog from '@/components/course-dialog';
 import EventItem from '@/components/event-item';
 
@@ -176,7 +180,8 @@ async function callSolver(queryOptions: SolverRequest) {
 function SubjectRow({ subject }: { subject: Subject }) {
   const [isOpen, setIsOpen] = useState(false);
   const { labels, locale } = useLabel();
-  const { removeSubject } = usePlannerStore();
+  const navigate = useNavigate();
+  const subjectsContext = useSubjects();
 
   const days = [
     labels.SUNDAY,
@@ -209,16 +214,60 @@ function SubjectRow({ subject }: { subject: Subject }) {
 
         <td>
           <div className="flex items-center gap-1">
-            <Button
-              className="btn btn-ghost btn-outline btn-sm w-min"
-              onClick={(e) => e.stopPropagation()}
-              icon={<EyeOpenIcon width={20} height={20} />}
-            />
-            <Button
-              className="btn btn-outline btn-error btn-sm w-min"
-              onClick={(e) => e.stopPropagation()}
-              icon={<TrashIcon width={20} height={20} />}
-            />
+            <details className="dropdown dropdown-hover">
+              <summary
+                className="btn btn-ghost btn-outline btn-sm w-min"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <DropdownMenuIcon width={20} height={20} />
+              </summary>
+              <ul
+                tabIndex={0}
+                className="dropdown-content z-[1] flex w-min flex-col gap-2 rounded-box bg-base-100 p-2 shadow"
+              >
+                <li>
+                  <NavLink
+                    to={`/subjects?mode=keres_kod_azon&q=${encodeURI(
+                      subject.code,
+                    )}&f=true`}
+                    className="btn btn-ghost btn-outline btn-sm w-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+
+                      navigate(
+                        `/subjects?mode=keres_kod_azon&q=${encodeURI(subject.code)}&f=true`,
+                      );
+                    }}
+                  >
+                    {labels.SEARCH}
+                    <MagnifyingGlassIcon width={20} height={20} />
+                  </NavLink>
+                </li>
+                <li>
+                  <CourseDialog
+                    mode="create"
+                    renderTrigger={(dialogRef) => (
+                      <Button
+                        label={labels.COURSE}
+                        className="btn btn-outline btn-success btn-sm w-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          dialogRef.current?.showModal();
+                        }}
+                        icon={<PlusIcon width={20} height={20} />}
+                      />
+                    )}
+                    onClose={() => {
+                      setTimeout(() => {
+                        // @ts-expect-error blur is not recognized
+                        document.activeElement?.blur?.();
+                      });
+                    }}
+                  />
+                </li>
+              </ul>
+            </details>
+
             <CaretUpIcon
               className={cn('ml-auto h-5 w-5', {
                 'rotate-180': isOpen,
