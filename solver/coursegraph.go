@@ -1,8 +1,8 @@
 package solver
 
 type CourseNode struct {
-	Courses   Set[*Course]
-	Neighbors Set[*CourseNode]
+	Courses   Set[*Course]     `json:"Courses"`
+	Neighbors Set[*CourseNode] `json:"Neighbors"`
 }
 
 type CourseGraph struct {

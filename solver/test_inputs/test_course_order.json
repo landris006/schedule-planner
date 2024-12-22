@@ -21,7 +21,7 @@
             "place": "LD 00-803",
             "capacity": 80,
             "type": 1,
-            "fix": true,
+            "fix": false,
             "allowOverlap": true
           },
           {

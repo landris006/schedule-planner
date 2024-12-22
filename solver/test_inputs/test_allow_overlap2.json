@@ -15,6 +15,15 @@
             "allowOverlap": false
           },
           {
+            "code": "IPM-18feszAJPEG-3",
+            "instructor": "Kitlei Róbert László",
+            "time": { "day": 5, "start": 18.25, "end": 19.75 },
+            "place": "LD 2-710 (PC 10)",
+            "capacity": 20,
+            "type": 1,
+            "fix": false
+          },
+          {
             "code": "IPM-18feszAJPEG-1",
             "instructor": "Morse Gregory Reynolds",
             "time": { "day": 4, "start": 10, "end": 12 },
@@ -23,15 +32,6 @@
             "type": 1,
             "fix": true,
             "allowOverlap": true
-          },
-          {
-            "code": "IPM-18feszAJPEG-3",
-            "instructor": "Kitlei Róbert László",
-            "time": { "day": 5, "start": 18.25, "end": 19.75 },
-            "place": "LD 2-710 (PC 10)",
-            "capacity": 20,
-            "type": 1,
-            "fix": false
           }
         ],
         "color": "hsl(-185, 100%, 30%)"

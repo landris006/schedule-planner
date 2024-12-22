@@ -23,7 +23,6 @@ func CalculateStartNode(pickedCourses Set[*CourseNode], allCourses Set[*CourseNo
 	return node
 }
 
-// Ha így meg tudnánk adni az összes feltételt, akkor szerintem nem is kellene az összeset összehasonlítani (?)
 func (schedule *Schedule) EvaluatePick(pickedCourses []*CourseNode) int64 {
 	var sum = 0
 
@@ -77,6 +76,28 @@ func (schedule *Schedule) EvaluatePick(pickedCourses []*CourseNode) int64 {
 	}
 
 	return int64(sum)
+}
+
+func (schedule *Schedule) Valid(graph *CourseGraph) bool {
+	fix_courses := EmptySet[*Course]()
+	for _, node := range graph.Nodes {
+		for _, course := range node.Courses.Elements() {
+			if course.Fix {
+				fix_courses.Insert(course)
+			}
+		}
+	}
+
+	picked_courses := EmptySet[*Course]()
+	for _, node := range schedule.PickedCourses.Elements() {
+		for _, course := range node.Courses.Elements() {
+			if course.Fix {
+				picked_courses.Insert(course)
+			}
+		}
+	}
+
+	return fix_courses.IsSubsetOf(picked_courses)
 }
 
 func (schedule *Schedule) CountGaps() int {
@@ -158,6 +179,7 @@ func (schedule *Schedule) Value() float64 {
 
 func QuickExtendSchedule(pickedCourses Set[*CourseNode], allCourses Set[*CourseNode]) Set[*CourseNode] {
 	var schedule = CalculateStartNode(pickedCourses, allCourses)
+
 	for schedule.PickableCourses.Size() > 0 {
 		//Kiértékelések
 		var bestValue = int64(math.Inf(-1))
@@ -182,47 +204,73 @@ func QuickExtendSchedule(pickedCourses Set[*CourseNode], allCourses Set[*CourseN
 		schedule.PickableCourses = schedule.PickableCourses.Intersection(best.Neighbors)
 	}
 	return schedule.PickedCourses
+
 }
 
 func CreateQuickSchedule(graph *CourseGraph) Set[*CourseNode] {
-	var schedule = Schedule{EmptySet[*CourseNode](), CreateSet(graph.Nodes...)}
+	//Rendezés
+	//https://dl.acm.org/doi/pdf/10.1145/2402.322385 418.oldal
+	courseDegMap := make(map[*CourseNode]float64)
 
-	//eloszor a fix kurzusok
-	for _, node := range schedule.PickableCourses.Elements() {
+	//Gyűjtsük külön azokat a kurzusokat, vagy előadás-gyakorlat párokat, amelyikben valamelyik kurzus fix
+	fixCourses := EmptySet[*CourseNode]()
+	for _, node := range graph.Nodes {
 		for _, course := range node.Courses.Elements() {
-			if course.Fix && schedule.PickableCourses.Contains(node) {
-				schedule.PickedCourses.Insert(node)
-				schedule.PickableCourses = schedule.PickableCourses.Intersection(node.Neighbors)
+			if course.Fix {
+				fixCourses.Insert(node)
+				break
 			}
 		}
 	}
 
-	for schedule.PickableCourses.Size() > 0 {
-		//Kiértékelések
-		var bestValue = int64(math.Inf(-1))
+	remainingNodes := CreateSet(graph.Nodes...)
+
+	for remainingNodes.Size() > 0 {
+		var bestValue = math.Inf(1)
 		var bestElements = []*CourseNode{}
 
-		for _, node := range schedule.PickableCourses.Elements() {
-			var value = schedule.EvaluatePick([]*CourseNode{node})
-			if value > bestValue {
+		for _, node := range remainingNodes.Elements() {
+			value := float64(node.Neighbors.Intersection(remainingNodes).Size())
+			if value < bestValue {
 				bestValue = value
 				bestElements = []*CourseNode{node}
 			} else if value == bestValue {
 				bestElements = append(bestElements, node)
 			}
 		}
-		//A legjobbak közül egy random kiválasztása
-		randomIndex := rand.Intn(len(bestElements))
-		var best = bestElements[randomIndex]
 
-		//kiválasztott elem elhelyezése az órarendbe
-		schedule.PickedCourses.Insert(best)
-
-		//választható kurzusok megszűrése
-		schedule.PickableCourses = schedule.PickableCourses.Intersection(best.Neighbors)
+		best := bestElements[0]
+		//Ez itt igazából az indexe az elemnek, ha visszafelé indexelnénk
+		//Szívem szerint egy rendezett tömbbe tenném, de nincsen kedvem megírni a rendezést vele
+		//a másik függvényben (sort.Slice(elements, func(i, j int) bool {-os sor)
+		courseDegMap[best] = float64(len(graph.Nodes) - len(courseDegMap))
+		remainingNodes.Remove(best)
 	}
 
-	return schedule.PickedCourses
+	fix_cliques := []Schedule{}
+	//https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm
+	BK(EmptySet[*CourseNode](), fixCourses, EmptySet[*CourseNode](), &fix_cliques, &courseDegMap)
+
+	//Kiértékelések
+	var bestValue = float64(math.Inf(-1))
+	var bestElements = []Schedule{}
+
+	for _, fix_clique := range fix_cliques {
+		if fix_clique.Valid(graph) {
+			schedule := Schedule{QuickExtendSchedule(fix_clique.PickedCourses, CreateSet(graph.Nodes...)), EmptySet[*CourseNode]()}
+			var value = schedule.Value()
+			if value > bestValue {
+				bestValue = value
+				bestElements = []Schedule{schedule}
+			} else if value == bestValue {
+				bestElements = append(bestElements, schedule)
+			}
+		}
+	}
+
+	randomIndex := rand.Intn(len(bestElements))
+
+	return bestElements[randomIndex].PickedCourses
 }
 
 func BK(clique Set[*CourseNode], available_vertices Set[*CourseNode], excluded_vertices Set[*CourseNode], cliques *[]Schedule, ordering *map[*CourseNode]float64) {
@@ -262,19 +310,16 @@ func CreateSchedule(graph *CourseGraph) Set[*CourseNode] {
 	//https://dl.acm.org/doi/pdf/10.1145/2402.322385 418.oldal
 	courseDegMap := make(map[*CourseNode]float64)
 
-	//eloszor a fix kurzusok
+	//Gyűjtsük külön azokat a kurzusokat, vagy előadás-gyakorlat párokat, amelyikben valamelyik kurzus fix
 	fixCourses := EmptySet[*CourseNode]()
-	validNodes := CreateSet(graph.Nodes...)
 	for _, node := range graph.Nodes {
 		for _, course := range node.Courses.Elements() {
-			if course.Fix && validNodes.Contains(node) {
+			if course.Fix {
 				fixCourses.Insert(node)
-				validNodes = validNodes.Intersection(node.Neighbors)
 				break
 			}
 		}
 	}
-	graph.Nodes = validNodes.Elements()
 
 	remainingNodes := CreateSet(graph.Nodes...)
 
@@ -300,20 +345,33 @@ func CreateSchedule(graph *CourseGraph) Set[*CourseNode] {
 		remainingNodes.Remove(best)
 	}
 
+	fix_cliques := []Schedule{}
 	//https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm
-	max_cliques := []Schedule{}
-	BK(fixCourses, CreateSet(graph.Nodes...), EmptySet[*CourseNode](), &max_cliques, &courseDegMap)
+	BK(EmptySet[*CourseNode](), fixCourses, EmptySet[*CourseNode](), &fix_cliques, &courseDegMap)
 
 	var bestValue = float64(math.Inf(-1))
 	var bestElements = []Schedule{}
+	//Sajnos be kell járni az összes fix-kurzusos kombinációt
+	for _, fix_schedule := range fix_cliques {
+		if fix_schedule.Valid(graph) {
+			max_cliques := []Schedule{}
 
-	for _, schedule := range max_cliques {
-		var value = schedule.Value()
-		if value > bestValue {
-			bestValue = value
-			bestElements = []Schedule{schedule}
-		} else if value == bestValue {
-			bestElements = append(bestElements, schedule)
+			nodes := CreateSet(graph.Nodes...)
+			for _, node := range fix_schedule.PickedCourses.Elements() {
+				nodes = nodes.Intersection(node.Neighbors)
+			}
+
+			BK(fix_schedule.PickedCourses, nodes, EmptySet[*CourseNode](), &max_cliques, &courseDegMap)
+
+			for _, schedule := range max_cliques {
+				var value = schedule.Value()
+				if value > bestValue {
+					bestValue = value
+					bestElements = []Schedule{schedule}
+				} else if value == bestValue {
+					bestElements = append(bestElements, schedule)
+				}
+			}
 		}
 	}
 

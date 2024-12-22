@@ -8,6 +8,8 @@ type Set[T comparable] interface {
 	Union(o Set[T]) Set[T]
 	Intersection(o Set[T]) Set[T]
 	Minus(o Set[T]) Set[T]
+	Equals(o Set[T]) bool
+	IsSubsetOf(o Set[T]) bool
 	Size() int
 	IsEmpty() bool
 }
@@ -83,6 +85,16 @@ func (_set set[T]) Size() int {
 
 func (_set set[T]) IsEmpty() bool {
 	return _set.Size() == 0
+}
+
+func (_set set[T]) Equals(o Set[T]) bool {
+	size_a := _set.Size()
+	size_b := o.Size()
+	return size_a == size_b && size_a == _set.Intersection(o).Size()
+}
+
+func (_set set[T]) IsSubsetOf(o Set[T]) bool {
+	return _set.Equals(_set.Intersection(o))
 }
 
 func EmptySet[T comparable]() Set[T] {
