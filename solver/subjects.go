@@ -11,6 +11,7 @@ import (
 type Subject struct {
 	Code    string    `json:"code"`
 	Name    string    `json:"name"`
+	Color   string    `json:"color"`
 	Courses []*Course `json:"courses"`
 }
 
@@ -23,7 +24,7 @@ type Course struct {
 	Location     string     `json:"location"`
 	Capacity     int        `json:"capacity"`
 	Type         CourseType `json:"type"` // 0 = 'lecture' | 1 = 'practice'
-	AllowOverlap bool       `json:"allow_overlap"`
+	AllowOverlap bool       `json:"allowOverlap"`
 	Fix          bool       `json:"fix"` //felhasznalo altal felvett fix kurzus
 }
 

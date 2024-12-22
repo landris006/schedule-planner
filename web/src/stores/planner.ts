@@ -95,6 +95,7 @@ export const usePlannerStore = create<PlannerState>()(
     }),
     {
       name: 'planner-storage',
+      version: 0,
     },
   ),
 );

@@ -16,11 +16,15 @@ type CourseDialogProps = {
 } & (
   | {
       mode: 'edit';
-      courseToEdit: Course;
+      courseData: Course;
     }
   | {
       mode: 'create';
-      courseToEdit?: undefined;
+      courseData?: undefined;
+    }
+  | {
+      mode: 'read';
+      courseData?: Course;
     }
 );
 
@@ -33,7 +37,7 @@ type FormData = Omit<Course, 'time'> & {
 };
 
 export default function CourseDialog({
-  courseToEdit,
+  courseData: courseToEdit,
   mode,
   renderTrigger,
 }: CourseDialogProps) {
@@ -56,6 +60,7 @@ export default function CourseDialog({
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({
+    disabled: mode === 'read',
     defaultValues: {
       type: CourseType.Lecture,
       ...courseToEdit,
@@ -215,17 +220,19 @@ export default function CourseDialog({
             <div className="flex justify-end gap-3">
               <Button
                 className="btn-ghost btn-outline btn-md"
-                label={labels.CANCEL}
+                label={labels.CLOSE}
                 onClick={() => {
                   dialogRef.current?.close();
                 }}
               />
-              <Button
-                className="btn-primary btn-md"
-                label={labels[mode.toUpperCase() as Uppercase<typeof mode>]}
-                icon={<Pencil1Icon width={20} height={20} />}
-                type="submit"
-              />
+              {mode !== 'read' && (
+                <Button
+                  className="btn-primary btn-md"
+                  label={labels[mode.toUpperCase() as Uppercase<typeof mode>]}
+                  icon={<Pencil1Icon width={20} height={20} />}
+                  type="submit"
+                />
+              )}
             </div>
           </form>
         </div>

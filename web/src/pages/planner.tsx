@@ -2,25 +2,22 @@ import Button from '@/components/button';
 import Calendar from '@/components/calendar';
 import { useLabel } from '@/contexts/label/label-context';
 import {
-  Course,
   CourseType,
   SolverRequest,
   Subject,
 } from '@/contexts/subjects/subjects-context';
 import { usePlannerStore } from '@/stores/planner';
 import { cn, floatToHHMM, useQuery } from '@/utils';
-import { EventContentArg } from '@fullcalendar/core/index.js';
 import {
   CaretUpIcon,
   EyeOpenIcon,
-  LockClosedIcon,
   MagnifyingGlassIcon,
   TrashIcon,
 } from '@radix-ui/react-icons';
-import { useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CourseDialog from '@/components/course-dialog';
+import EventItem from '@/components/event-item';
 
 export default function Planner() {
   const navigate = useNavigate();
@@ -41,7 +38,7 @@ export default function Planner() {
         Math.min(
           acc,
           subject.courses
-            .filter((c) => !!c.time)
+            .filter((c) => Object.values(c.time).every((v) => !!v))
             .reduce(
               (acc, course) => Math.min(acc, course.time!.start ?? 0),
               Infinity,
@@ -54,7 +51,7 @@ export default function Planner() {
         Math.max(
           acc,
           subject.courses
-            .filter((c) => !!c.time)
+            .filter((c) => Object.values(c.time).every((v) => !!v))
             .reduce(
               (acc, course) => Math.max(acc, course.time!.end ?? Infinity),
               -Infinity,
@@ -98,10 +95,19 @@ export default function Planner() {
               <tr className="text-base font-bold text-base-content">
                 <th className="bg-base-100 text-left">{labels.CODE}</th>
                 <th className="bg-base-100 text-left">{labels.NAME}</th>
-                <th className="bg-base-100 text-left">{labels.TYPE}</th>
-                <th className="bg-base-100 text-left">{labels.INSTRUCTOR}</th>
-                <th className="bg-base-100 text-left">{labels.PLACE}</th>
-                <th className="bg-base-100 text-left">{labels.TIME}</th>
+
+                <th className="hidden bg-base-100 text-left md:table-cell">
+                  {labels.TYPE}
+                </th>
+                <th className="hidden bg-base-100 text-left md:table-cell">
+                  {labels.INSTRUCTOR}
+                </th>
+                <th className="hidden bg-base-100 text-left md:table-cell">
+                  {labels.PLACE}
+                </th>
+                <th className="hidden bg-base-100 text-left md:table-cell">
+                  {labels.TIME}
+                </th>
                 <th></th>
               </tr>
             </thead>
@@ -167,118 +173,6 @@ async function callSolver(queryOptions: SolverRequest) {
   }).then((res) => res.json());
 }
 
-function EventItem({ eventInfo }: { eventInfo: EventContentArg }) {
-  const [isShowingTooltip, setIsShowingTooltip] = useState(false);
-  const tooltipRef = useRef<HTMLDivElement>(null);
-  const { labels } = useLabel();
-  const course: Course = eventInfo.event.extendedProps.course;
-
-  return (
-    <>
-      {createPortal(
-        <div ref={tooltipRef} className="absolute z-50">
-          {isShowingTooltip && (
-            <div className="w-72 rounded-md bg-base-100 p-2 shadow-lg">
-              <div className="flex gap-2">
-                <div className="flex flex-col">
-                  <p className="flex justify-between overflow-hidden text-ellipsis font-bold">
-                    {course.time.start && course.time.end
-                      ? `${floatToHHMM(course.time.start)}-${floatToHHMM(course.time.end)}`
-                      : '-'}
-
-                    {course.type === CourseType.Lecture && (
-                      <span className="badge badge-accent badge-outline">
-                        {labels.LECTURE}
-                      </span>
-                    )}
-                    {course.type === CourseType.Practice && (
-                      <span className="badge badge-info badge-outline">
-                        {labels.PRACTICE}
-                      </span>
-                    )}
-                  </p>
-
-                  <p className="overflow-hidden text-ellipsis">
-                    {eventInfo.event.title}
-                  </p>
-                  <p className="overflow-hidden text-ellipsis">{course.code}</p>
-
-                  <p className="overflow-hidden text-ellipsis">
-                    {course.instructor}
-                  </p>
-                  <p className="overflow-hidden text-ellipsis">
-                    {course.place}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>,
-        document.body,
-      )}
-
-      <CourseDialog
-        mode="edit"
-        courseToEdit={course}
-        renderTrigger={(dialogRef) => (
-          <div
-            className="relative z-0 flex h-full cursor-pointer flex-col gap-0.5"
-            onClick={() => dialogRef.current?.showModal()}
-            onMouseEnter={(e) => {
-              if (!tooltipRef.current) {
-                return;
-              }
-              const { left, width, top } =
-                e.currentTarget.getBoundingClientRect();
-
-              tooltipRef.current.style.right =
-                window.innerWidth - left - width + 'px';
-              tooltipRef.current.style.bottom =
-                window.innerHeight - top - window.scrollY + 15 + 'px';
-              setIsShowingTooltip(true);
-            }}
-            onMouseLeave={() => {
-              setIsShowingTooltip(false);
-            }}
-          >
-            {course.fix && (
-              <span
-                className="tooltip tooltip-left absolute right-0 top-0 z-10 text-yellow-300"
-                data-tip={labels.FIX_TOOLTIP}
-              >
-                <LockClosedIcon width={20} height={20} />
-              </span>
-            )}
-
-            <p className="flex justify-between font-bold">
-              {course.time.start && course.time.end
-                ? `${floatToHHMM(course.time.start)}-${floatToHHMM(course.time.end)}`
-                : '-'}
-
-              {course.type === CourseType.Lecture && (
-                <span className="overflow-hidden text-ellipsis">
-                  {labels.LECTURE}
-                </span>
-              )}
-              {course.type === CourseType.Practice && (
-                <span className="overflow-hidden text-ellipsis">
-                  {labels.PRACTICE}
-                </span>
-              )}
-            </p>
-            <p className="overflow-hidden text-ellipsis">
-              {eventInfo.event.title}
-            </p>
-            <p className="overflow-hidden text-ellipsis">{course.code}</p>
-
-            <p className="overflow-hidden text-ellipsis">{course.place}</p>
-          </div>
-        )}
-      />
-    </>
-  );
-}
-
 function SubjectRow({ subject }: { subject: Subject }) {
   const [isOpen, setIsOpen] = useState(false);
   const { labels, locale } = useLabel();
@@ -307,10 +201,12 @@ function SubjectRow({ subject }: { subject: Subject }) {
           {subject.code}
         </td>
         <td>{subject.name}</td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
+
+        <td className="hidden md:table-cell"></td>
+        <td className="hidden md:table-cell"></td>
+        <td className="hidden md:table-cell"></td>
+        <td className="hidden md:table-cell"></td>
+
         <td>
           <div className="flex items-center gap-1">
             <Button
@@ -344,7 +240,8 @@ function SubjectRow({ subject }: { subject: Subject }) {
                 {course.code}
               </td>
               <td></td>
-              <td>
+
+              <td className="hidden md:table-cell">
                 {course.type === CourseType.Lecture && (
                   <span className="badge badge-accent badge-outline">
                     {labels.LECTURE}
@@ -356,7 +253,7 @@ function SubjectRow({ subject }: { subject: Subject }) {
                   </span>
                 )}
               </td>
-              <td>
+              <td className="hidden md:table-cell">
                 <a
                   className="link-hover link link-primary"
                   target="_blank"
@@ -369,14 +266,14 @@ function SubjectRow({ subject }: { subject: Subject }) {
                   {course.instructor}
                 </a>
               </td>
-              <td>{course.place}</td>
-              <td>
+              <td className="hidden md:table-cell">{course.place}</td>
+              <td className="hidden md:table-cell">
                 {course.time.day && course.time.start && course.time.end
                   ? `${days[course.time.day]}, ${floatToHHMM(course.time.start)}-${floatToHHMM(course.time.end)}`
                   : '-'}
               </td>
               <td>
-                <CourseDialog mode="edit" courseToEdit={course} />
+                <CourseDialog mode="edit" courseData={course} />
               </td>
             </tr>
           ))}

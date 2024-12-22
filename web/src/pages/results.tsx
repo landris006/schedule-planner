@@ -3,6 +3,7 @@ import Calendar from '@/components/calendar';
 import { useLabel } from '@/contexts/label/label-context';
 import { usePlannerStore } from '@/stores/planner';
 import { useMemo } from 'react';
+import EventItem from '@/components/event-item';
 
 export default function Results() {
   const { labels } = useLabel();
@@ -15,9 +16,9 @@ export default function Results() {
         Math.min(
           acc,
           subject.courses
-            .filter((c) => !!c.time)
+            .filter((c) => Object.values(c.time).every((v) => !!v))
             .reduce(
-              (acc, course) => Math.min(acc, course.time!.start ?? 0),
+              (acc, course) => Math.min(acc, course.time.start ?? 0),
               Infinity,
             ),
         ),
@@ -28,9 +29,9 @@ export default function Results() {
         Math.max(
           acc,
           subject.courses
-            .filter((c) => !!c.time)
+            .filter((c) => Object.values(c.time).every((v) => !!v))
             .reduce(
-              (acc, course) => Math.max(acc, course.time!.end ?? Infinity),
+              (acc, course) => Math.max(acc, course.time.end ?? Infinity),
               -Infinity,
             ),
         ),
@@ -56,13 +57,18 @@ export default function Results() {
             slotDuration={`00:${calendarSettings.slotDuration}:00`}
             events={results.flatMap((subject) =>
               subject.courses
-                .filter((c) => c.time)
+                .filter((c) => Object.values(c.time).every((v) => !!v))
                 .map((course) => ({
-                  title: subject.name + ' ' + course.code,
+                  title: `${subject.name}`,
                   daysOfWeek: [course.time!.day],
-                  startTime: floatToHHMM(course.time!.start),
-                  duration: floatToHHMM(course.time!.end - course.time!.start),
+                  startTime: floatToHHMM(course.time.start!),
+                  duration: floatToHHMM(course.time.end! - course.time.start!),
+                  color: subject.color,
+                  course,
                 })),
+            )}
+            eventContent={(eventInfo) => (
+              <EventItem dialogReadOnly={true} eventInfo={eventInfo} />
             )}
           />
           <label htmlFor="slotDuration">Beosztásköz</label>
