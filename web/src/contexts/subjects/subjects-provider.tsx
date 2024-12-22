@@ -145,9 +145,14 @@ function parseSubjects(htmlString: string) {
     }
   });
 
-  return Array.from(subjects.values()).filter(
-    (course) => course.courses.length > 0,
-  );
+  const subjectsArray = Array.from(subjects.values());
+  subjectsArray.forEach((subject) => {
+    subject.courses.sort((a, b) =>
+      JSON.stringify(a).localeCompare(JSON.stringify(b)),
+    );
+  });
+
+  return subjectsArray.filter((course) => course.courses.length > 0);
 }
 
 function parseTime(timeString: string): Time | undefined {

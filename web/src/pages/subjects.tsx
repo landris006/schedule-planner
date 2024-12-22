@@ -17,7 +17,6 @@ import {
 import { usePlannerStore } from '@/stores/planner';
 import { floatToHHMM } from '@/utils';
 import deepEqual from 'fast-deep-equal';
-import Tooltip from '@/components/tooltip';
 
 export default function Subjects() {
   const { labels } = useLabel();
@@ -149,9 +148,28 @@ export default function Subjects() {
           );
           const isSaved = !!savedSubject;
 
-          const { color: _, ...savedSubjectWithoutColor } = savedSubject ?? {};
-          const isChanged =
-            isSaved && !deepEqual(subject, savedSubjectWithoutColor); // TODO: ignore `fix` field
+          const isChanged = isSaved && !checkEquality();
+
+          function checkEquality() {
+            if (isSaved) {
+              const { color: _, ...savedSubjectWithoutColor } =
+                savedSubject ?? {};
+              savedSubjectWithoutColor.courses =
+                savedSubjectWithoutColor?.courses.map((c) => {
+                  const {
+                    allowOverlap: _,
+                    fix: __,
+                    ...courseWithIgnoredFields
+                  } = c;
+                  return courseWithIgnoredFields;
+                });
+              savedSubjectWithoutColor.courses.sort((a, b) =>
+                JSON.stringify(a).localeCompare(JSON.stringify(b)),
+              );
+
+              return deepEqual(subject, savedSubjectWithoutColor);
+            }
+          }
 
           return (
             <div className="card" key={subject.code}>
