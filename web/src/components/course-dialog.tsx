@@ -215,6 +215,25 @@ export default function CourseDialog({
                   />
                 </div>
               </FormField>
+
+              <FormField
+                className="w-min whitespace-nowrap"
+                label={labels.ALLOW_OVERLAP}
+                errorMessage={errors.allowOverlap?.message}
+              >
+                <div className="flex gap-2">
+                  <input
+                    type="checkbox"
+                    className="toggle toggle-primary"
+                    {...register('allowOverlap')}
+                  />
+
+                  <Tooltip
+                    className="tooltip-right"
+                    text={labels.ALLOW_OVERLAP_TOOLTIP}
+                  />
+                </div>
+              </FormField>
             </div>
 
             <div className="flex justify-end gap-3">

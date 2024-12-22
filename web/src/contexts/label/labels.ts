@@ -354,6 +354,14 @@ export const labels = {
     hu: 'Szín',
     en: 'Color',
   },
+  ALLOW_OVERLAP: {
+    hu: 'Átfedés engedélyezése',
+    en: 'Allow overlap',
+  },
+  ALLOW_OVERLAP_TOOLTIP: {
+    hu: 'Engedi más tárgy felvételét ugyanebben az időpontban.',
+    en: 'Allows the inclusion of other courses in this time slot.',
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type Labels = typeof labels;

@@ -50,6 +50,7 @@ export type Course = {
   capacity: number;
   type: CourseType;
   fix?: boolean;
+  allowOverlap?: boolean;
 };
 
 export type Time = {

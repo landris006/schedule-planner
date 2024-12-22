@@ -1,19 +1,8 @@
-import Button from '@/components/button';
 import { useLabel } from '@/contexts/label/label-context';
-import {
-  Course,
-  CourseType,
-  Subject,
-} from '@/contexts/subjects/subjects-context';
-import { usePlannerStore } from '@/stores/planner';
-import { cn, floatToHHMM } from '@/utils';
+import { Course, CourseType } from '@/contexts/subjects/subjects-context';
+import { floatToHHMM } from '@/utils';
 import { EventContentArg } from '@fullcalendar/core/index.js';
-import {
-  CaretUpIcon,
-  EyeOpenIcon,
-  LockClosedIcon,
-  TrashIcon,
-} from '@radix-ui/react-icons';
+import { CopyIcon, LockClosedIcon } from '@radix-ui/react-icons';
 import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import CourseDialog from '@/components/course-dialog';
@@ -66,6 +55,25 @@ export default function EventItem({
                   <p className="overflow-hidden text-ellipsis">
                     {course.place}
                   </p>
+
+                  <p>
+                    {course.allowOverlap && (
+                      <span
+                        className="tooltip tooltip-left text-yellow-300 before:-translate-y-[70%]"
+                        data-tip={labels.ALLOW_OVERLAP_TOOLTIP}
+                      >
+                        <CopyIcon width={20} height={20} />
+                      </span>
+                    )}
+                    {course.fix && (
+                      <span
+                        className="tooltip tooltip-left text-yellow-300 before:-translate-y-[70%]"
+                        data-tip={labels.FIX_TOOLTIP}
+                      >
+                        <LockClosedIcon width={20} height={20} />
+                      </span>
+                    )}
+                  </p>
                 </div>
               </div>
             </div>
@@ -98,14 +106,24 @@ export default function EventItem({
               setIsShowingTooltip(false);
             }}
           >
-            {course.fix && (
-              <span
-                className="tooltip tooltip-left absolute bottom-0 right-0 z-10 text-yellow-300"
-                data-tip={labels.FIX_TOOLTIP}
-              >
-                <LockClosedIcon width={20} height={20} />
-              </span>
-            )}
+            <div className="absolute bottom-0 right-0 z-10">
+              {course.allowOverlap && (
+                <span
+                  className="tooltip tooltip-left text-yellow-300 before:-translate-y-[70%]"
+                  data-tip={labels.ALLOW_OVERLAP_TOOLTIP}
+                >
+                  <CopyIcon width={20} height={20} />
+                </span>
+              )}
+              {course.fix && (
+                <span
+                  className="tooltip tooltip-left text-yellow-300 before:-translate-y-[70%]"
+                  data-tip={labels.FIX_TOOLTIP}
+                >
+                  <LockClosedIcon width={20} height={20} />
+                </span>
+              )}
+            </div>
 
             <p className="flex justify-between font-bold">
               {course.time.start && course.time.end
@@ -132,111 +150,6 @@ export default function EventItem({
           </div>
         )}
       />
-    </>
-  );
-}
-
-function SubjectRow({ subject }: { subject: Subject }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const { labels, locale } = useLabel();
-  const { removeSubject } = usePlannerStore();
-
-  const days = [
-    labels.SUNDAY,
-    labels.MONDAY,
-    labels.TUESDAY,
-    labels.WEDNESDAY,
-    labels.THURSDAY,
-    labels.FRIDAY,
-    labels.SATURDAY,
-  ];
-
-  return (
-    <>
-      <tr
-        key={subject.code}
-        className={cn('subject-row lz-10 cursor-pointer hover:bg-base-300', {
-          'bg-base-300': isOpen,
-        })}
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <td className="overflow-hidden text-ellipsis whitespace-nowrap px-3 py-1">
-          {subject.code}
-        </td>
-        <td>{subject.name}</td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td>
-          <div className="flex items-center gap-1">
-            <Button
-              className="btn btn-ghost btn-outline btn-sm w-min"
-              onClick={(e) => e.stopPropagation()}
-              icon={<EyeOpenIcon width={20} height={20} />}
-            />
-            <Button
-              className="btn btn-outline btn-error btn-sm w-min"
-              onClick={(e) => e.stopPropagation()}
-              icon={<TrashIcon width={20} height={20} />}
-            />
-            <CaretUpIcon
-              className={cn('ml-auto h-5 w-5', {
-                'rotate-180': isOpen,
-              })}
-            />
-          </div>
-        </td>
-      </tr>
-
-      {isOpen &&
-        subject.courses
-          .sort((a, b) => a.type - b.type)
-          .map((course) => (
-            <tr
-              key={course.code + course.instructor + course.time?.day}
-              className="animate-course-row-pop-in bg-base-300 last-of-type:border-b-white"
-            >
-              <td className="parent-line relative whitespace-nowrap py-0 pl-6 pr-3">
-                {course.code}
-              </td>
-              <td></td>
-              <td>
-                {course.type === CourseType.Lecture && (
-                  <span className="badge badge-accent badge-outline">
-                    {labels.LECTURE}
-                  </span>
-                )}
-                {course.type === CourseType.Practice && (
-                  <span className="badge badge-info badge-outline">
-                    {labels.PRACTICE}
-                  </span>
-                )}
-              </td>
-              <td>
-                <a
-                  className="link-hover link link-primary"
-                  target="_blank"
-                  href={
-                    locale === 'hu'
-                      ? `https://www.markmyprofessor.com/kereses?q=${course.instructor}`
-                      : `https://www.markmyprofessor.com/en/search?q=${course.instructor}`
-                  }
-                >
-                  {course.instructor}
-                </a>
-              </td>
-              <td>{course.place}</td>
-              <td>
-                {course.time.day && course.time.start && course.time.end
-                  ? `${days[course.time.day]}, ${floatToHHMM(course.time.start)}-${floatToHHMM(course.time.end)}`
-                  : '-'}
-              </td>
-              <td>
-                <CourseDialog mode="edit" courseData={course} />
-              </td>
-            </tr>
-          ))}
     </>
   );
 }
