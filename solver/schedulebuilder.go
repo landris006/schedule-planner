@@ -190,7 +190,7 @@ func CreateQuickSchedule(graph *CourseGraph) Set[*CourseNode] {
 	//eloszor a fix kurzusok
 	for _, node := range schedule.PickableCourses.Elements() {
 		for _, course := range node.Courses.Elements() {
-			if course.Fix {
+			if course.Fix && schedule.PickableCourses.Contains(node) {
 				schedule.PickedCourses.Insert(node)
 				schedule.PickableCourses = schedule.PickableCourses.Intersection(node.Neighbors)
 			}
@@ -267,7 +267,7 @@ func CreateSchedule(graph *CourseGraph) Set[*CourseNode] {
 	validNodes := CreateSet(graph.Nodes...)
 	for _, node := range graph.Nodes {
 		for _, course := range node.Courses.Elements() {
-			if course.Fix {
+			if course.Fix && validNodes.Contains(node) {
 				fixCourses.Insert(node)
 				validNodes = validNodes.Intersection(node.Neighbors)
 				break

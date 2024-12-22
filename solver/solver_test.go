@@ -8,7 +8,8 @@ import (
 func TestSolver(t *testing.T) {
 	for i := 0; i < 1; i++ {
 		var courseGraph = CourseGraph{}
-		courseGraph.BuildGraph(ReadSubjects("test_inputs/test_fix.json"), ReadFilters("test_inputs/test_fix.json"))
+		filepath := "test_inputs/test_no_filter.json"
+		courseGraph.BuildGraph(ReadSubjects(filepath), ReadFilters(filepath))
 
 		var scheduledCourses = CreateSchedule(&courseGraph)
 
@@ -30,7 +31,7 @@ func TestSolver(t *testing.T) {
 		println("Felvett kurzusok száma: " + strconv.Itoa(sum))
 
 		courseGraph = CourseGraph{}
-		courseGraph.BuildGraph(ReadSubjects("test_inputs/test_fix.json"), ReadFilters("test_inputs/test_fix.json"))
+		courseGraph.BuildGraph(ReadSubjects(filepath), ReadFilters(filepath))
 		scheduledCourses = CreateQuickSchedule(&courseGraph)
 		println("Felvett tárgyak száma: " + strconv.Itoa(scheduledCourses.Size()))
 		sum = 0

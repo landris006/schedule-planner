@@ -1,0 +1,41 @@
+{
+    "subjects": [
+      {
+        "code": "IPM-18feszAJPEG",
+        "name": "Advanced Java programming  L.+Pr.",
+        "courses": [
+          {
+            "code": "IPM-18feszAJPEG-90",
+            "instructor": "Kitlei Róbert László",
+            "time": { "day": 4, "start": 19.5, "end": 21 },
+            "place": "LD 0-804 (Lóczy)",
+            "capacity": 80,
+            "type": 0,
+            "fix": true,
+            "allowOverlap": false
+          },
+          {
+            "code": "IPM-18feszAJPEG-1",
+            "instructor": "Morse Gregory Reynolds",
+            "time": { "day": 4, "start": 10, "end": 12 },
+            "place": "LD 00-803",
+            "capacity": 80,
+            "type": 1,
+            "fix": false,
+            "allowOverlap": true
+          },
+          {
+            "code": "IPM-18feszAJPEG-3",
+            "instructor": "Kitlei Róbert László",
+            "time": { "day": 5, "start": 18.25, "end": 19.75 },
+            "place": "LD 2-710 (PC 10)",
+            "capacity": 20,
+            "type": 1,
+            "fix": false
+          }
+        ],
+        "color": "hsl(-185, 100%, 30%)"
+      }
+    ],
+    "filters": []
+  }

@@ -76,6 +76,15 @@ type filters struct {
 	Filters []*Filter `json:"filters"`
 }
 
+func (course_a *Course) IsInConflictWithSet(courses Set[*Course]) bool {
+	for _, course_b := range courses.Elements() {
+		if course_a.IsInConflictWith(course_b) {
+			return true
+		}
+	}
+	return false
+}
+
 func (course_a *Course) IsInConflictWith(course_b *Course) bool {
 	if course_a.Fix && course_b.Fix {
 		return false
@@ -86,7 +95,7 @@ func (course_a *Course) IsInConflictWith(course_b *Course) bool {
 		return true
 	}
 
-	return course_a.AllowOverlap || course_b.AllowOverlap || course_a.OverlapsWith(course_b)
+	return !(course_a.AllowOverlap || course_b.AllowOverlap) && course_a.OverlapsWith(course_b)
 }
 
 func (course_a *Course) OverlapsWith(course_b *Course) bool {
