@@ -170,6 +170,10 @@ export const labels = {
     hu: 'Óra',
     en: 'Course',
   },
+  CREATE_COURSE: {
+    hu: 'Óra létrehozása',
+    en: 'Create course',
+  },
   SUBJECTS: {
     hu: 'Tantárgyak',
     en: 'Subjects',

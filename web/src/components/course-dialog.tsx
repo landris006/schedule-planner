@@ -8,12 +8,12 @@ import Input from './input';
 import { Course, CourseType } from '@/contexts/subjects/subjects-context';
 import { floatToHHMM, hhmmToFloat } from '@/utils';
 import Tooltip from './tooltip';
-import { usePlannerStore } from '@/stores/planner';
 import React from 'react';
 
 type CourseDialogProps = {
   renderTrigger?: (dialogRef: React.RefObject<HTMLDialogElement>) => ReactNode;
   onClose?: () => void;
+  onSubmit?: (courseData: Course) => void;
 } & (
   | {
       mode: 'edit';
@@ -21,11 +21,11 @@ type CourseDialogProps = {
     }
   | {
       mode: 'create';
-      courseData?: undefined;
+      courseData?: Partial<Course> | undefined;
     }
   | {
       mode: 'read';
-      courseData?: Course;
+      courseData: Course;
     }
 );
 
@@ -38,14 +38,14 @@ type FormData = Omit<Course, 'time'> & {
 };
 
 export default function CourseDialog({
-  courseData: courseToEdit,
+  courseData,
   mode,
   renderTrigger,
   onClose,
+  onSubmit,
 }: CourseDialogProps) {
   const { labels } = useLabel();
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const { updateCourse } = usePlannerStore();
 
   function closeDialog() {
     dialogRef.current?.close();
@@ -72,14 +72,14 @@ export default function CourseDialog({
     disabled: mode === 'read',
     defaultValues: {
       type: CourseType.Lecture,
-      ...courseToEdit,
+      ...courseData,
       time: {
-        day: courseToEdit?.time.day,
-        start: courseToEdit?.time.start
-          ? floatToHHMM(courseToEdit?.time.start)
+        day: courseData?.time?.day ?? undefined,
+        start: courseData?.time?.start
+          ? floatToHHMM(courseData?.time.start)
           : undefined,
-        end: courseToEdit?.time.end
-          ? floatToHHMM(courseToEdit.time.end)
+        end: courseData?.time?.end
+          ? floatToHHMM(courseData.time.end)
           : undefined,
       },
     },
@@ -89,17 +89,18 @@ export default function CourseDialog({
   async function submitHandler(formData: FormData) {
     const courseData: Course = {
       ...formData,
+      code: formData.code,
       time: {
         day: formData.time.day,
-        start: formData.time.start
-          ? hhmmToFloat(formData.time.start)
-          : undefined,
-        end: formData.time.end ? hhmmToFloat(formData.time.end) : undefined,
+        start: formData.time.start ? hhmmToFloat(formData.time.start) : null,
+        end: formData.time.end ? hhmmToFloat(formData.time.end) : null,
       },
     };
 
-    if (mode === 'edit') {
-      updateCourse(courseData);
+    if (typeof onSubmit === 'function') {
+      setTimeout(() => {
+        onSubmit(courseData);
+      });
     }
 
     closeDialog();
@@ -132,7 +133,9 @@ export default function CourseDialog({
             </button>
           </form>
           <h3 className="text-lg font-bold">
-            {labels.EDIT_COURSE} ({courseToEdit?.code})
+            {mode === 'edit' && `${labels.EDIT_COURSE} (${courseData.code})`}
+            {mode === 'create' && `${labels.CREATE_COURSE}`}
+            {mode === 'read' && courseData.code}
           </h3>
 
           <form
@@ -140,6 +143,22 @@ export default function CourseDialog({
             className="flex flex-col gap-3"
           >
             <div>
+              {mode === 'create' && (
+                <FormField
+                  label={labels.CODE}
+                  errorMessage={errors.code?.message}
+                >
+                  <Input
+                    readOnly
+                    className="input-disabled w-full"
+                    placeholder={labels.CODE}
+                    aria-invalid={!!errors.code}
+                    {...register('code')}
+                    value={courseData?.code}
+                  />
+                </FormField>
+              )}
+
               <FormField
                 label={labels.TYPE}
                 errorMessage={errors.type?.message}
@@ -165,6 +184,18 @@ export default function CourseDialog({
                   placeholder={labels.INSTRUCTOR}
                   aria-invalid={!!errors.instructor}
                   {...register('instructor')}
+                />
+              </FormField>
+
+              <FormField
+                label={labels.PLACE}
+                errorMessage={errors.place?.message}
+              >
+                <Input
+                  className="w-full"
+                  placeholder={labels.PLACE}
+                  aria-invalid={!!errors.place}
+                  {...register('place')}
                 />
               </FormField>
 
@@ -199,6 +230,7 @@ export default function CourseDialog({
                   />
                 </FormField>
 
+                {/* TODO: validate end > start */}
                 <FormField
                   label={labels.END}
                   errorMessage={errors.time?.end?.message}

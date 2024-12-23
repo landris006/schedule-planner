@@ -16,6 +16,7 @@ type PlannerState = {
     subject: { code: Subject['code'] } & Partial<Subject>,
   ) => void;
   updateCourse: (course: { code: Course['code'] } & Partial<Course>) => void;
+  createCourse: (subjectCode: Subject['code'], course: Course) => void;
   setSlotDuration: (slotDuration: number) => void;
 };
 
@@ -81,6 +82,15 @@ export const usePlannerStore = create<PlannerState>()(
             ),
           })),
         }));
+      },
+      createCourse: (subjectCode, course) => {
+        set((state) => {
+          state.savedSubjects
+            .find((s) => s.code === subjectCode)
+            ?.courses.push(course);
+
+          return { ...state };
+        });
       },
       setSlotDuration: (slotDuration) => {
         set((state) => ({

@@ -12,14 +12,11 @@ import { cn, floatToHHMM, useQuery } from '@/utils';
 import {
   CaretUpIcon,
   DropdownMenuIcon,
-  EyeOpenIcon,
-  GearIcon,
   MagnifyingGlassIcon,
   PlusIcon,
-  TrashIcon,
 } from '@radix-ui/react-icons';
 import { useMemo, useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import CourseDialog from '@/components/course-dialog';
 import EventItem from '@/components/event-item';
 
@@ -119,8 +116,12 @@ export default function Planner() {
             <tbody>
               {savedSubjects
                 .sort((a, b) => a.name.localeCompare(b.name))
-                .map((subject) => (
-                  <SubjectRow key={subject.code} subject={subject} />
+                .map((subject, i) => (
+                  <SubjectRow
+                    key={subject.code}
+                    subject={subject}
+                    isLast={i === savedSubjects.length - 1}
+                  />
                 ))}
             </tbody>
           </table>
@@ -178,11 +179,17 @@ async function callSolver(queryOptions: SolverRequest) {
   }).then((res) => res.json());
 }
 
-function SubjectRow({ subject }: { subject: Subject }) {
+function SubjectRow({
+  subject,
+  isLast,
+}: {
+  subject: Subject;
+  isLast?: boolean;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const { labels, locale } = useLabel();
   const navigate = useNavigate();
-  const subjectsContext = useSubjects();
+  const { updateCourse, createCourse, savedSubjects } = usePlannerStore();
 
   const days = [
     labels.SUNDAY,
@@ -215,7 +222,11 @@ function SubjectRow({ subject }: { subject: Subject }) {
 
         <td>
           <div className="flex items-center gap-1">
-            <details className="dropdown dropdown-left">
+            <details
+              className={cn('dropdown dropdown-left', {
+                'dropdown-top': isLast,
+              })}
+            >
               <summary
                 className="btn btn-ghost btn-outline btn-sm w-min"
                 onClick={(e) => e.stopPropagation()}
@@ -249,6 +260,14 @@ function SubjectRow({ subject }: { subject: Subject }) {
                 <li>
                   <CourseDialog
                     mode="create"
+                    courseData={{
+                      code: `${subject.code}-custom-${subject.courses.filter((c) => c.code.includes('-custom-')).length + 1}`,
+                    }}
+                    onSubmit={(courseData) => {
+                      console.log(courseData);
+
+                      createCourse(subject.code, courseData);
+                    }}
                     renderTrigger={(dialogRef) => (
                       <Button
                         label={labels.COURSE}
@@ -261,10 +280,8 @@ function SubjectRow({ subject }: { subject: Subject }) {
                       />
                     )}
                     onClose={() => {
-                      setTimeout(() => {
-                        // @ts-expect-error blur is not recognized
-                        document.activeElement?.blur?.();
-                      });
+                      // @ts-expect-error blur is not recognized
+                      document.activeElement?.blur?.();
                     }}
                   />
                 </li>
@@ -325,7 +342,11 @@ function SubjectRow({ subject }: { subject: Subject }) {
                   : '-'}
               </td>
               <td>
-                <CourseDialog mode="edit" courseData={course} />
+                <CourseDialog
+                  mode="edit"
+                  courseData={course}
+                  onSubmit={updateCourse}
+                />
               </td>
             </tr>
           ))}
