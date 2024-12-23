@@ -186,8 +186,13 @@ function parseTime(timeString: string): Time | undefined {
   try {
     const [day, duration] = timeString.split(' ');
 
+    const dayCleaned = day
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase(); // ignore casing and remove accents (e.g. Hétfő => hetfo)
+
     const time: Time = {
-      day: DAY_MAP[day as keyof typeof DAY_MAP],
+      day: DAY_MAP[dayCleaned as keyof typeof DAY_MAP],
       start: hhmmToFloat(duration.split('-')[0]),
       end: hhmmToFloat(duration.split('-')[1]),
     };
@@ -198,18 +203,18 @@ function parseTime(timeString: string): Time | undefined {
   }
 }
 const DAY_MAP = {
-  Sunday: 0,
-  Monday: 1,
-  Tuesday: 2,
-  Wednesday: 3,
-  Thursday: 4,
-  Friday: 5,
-  Saturday: 6,
-  Vasárnap: 0,
-  Hétfő: 1,
-  Kedd: 2,
-  Szerda: 3,
-  Csütörtök: 4,
-  Péntek: 5,
-  Szombat: 6,
+  sunday: 0,
+  monday: 1,
+  tuesday: 2,
+  wednesday: 3,
+  thursday: 4,
+  friday: 5,
+  saturday: 6,
+  vasarnap: 0,
+  hetfo: 1,
+  kedd: 2,
+  szerda: 3,
+  csutortok: 4,
+  pentek: 5,
+  szombat: 6,
 };
