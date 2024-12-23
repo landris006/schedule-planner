@@ -69,7 +69,7 @@ export default function Planner() {
 
   return (
     <div className="p-3">
-      <div className="mx-auto flex max-w-screen-2xl flex-1 flex-col gap-3 overflow-x-auto">
+      <div className="mx-auto flex max-w-screen-2xl flex-1 flex-col gap-3 overflow-x-auto px-9">
         <div className="flex justify-between">
           <h1 className="text-3xl">{labels.PLANNER}</h1>
 
@@ -91,9 +91,10 @@ export default function Planner() {
           />
         </div>
 
-        <div className="collapse collapse-arrow rounded-md border border-base-content/50 bg-base-200">
-          <input type="checkbox" />
-          <h2 className="collapse-title text-xl">{labels.SAVED_SUBJECTS}</h2>
+        <details className="collapse collapse-arrow rounded-md border border-base-content/50 bg-base-200">
+          <summary className="collapse-title text-xl">
+            {labels.SAVED_SUBJECTS}
+          </summary>
           <table className="table collapse-content table-pin-cols table-fixed">
             <thead className="">
               <tr className="text-base font-bold text-base-content">
@@ -123,7 +124,7 @@ export default function Planner() {
                 ))}
             </tbody>
           </table>
-        </div>
+        </details>
 
         <h2 className="text-xl">{labels.CALENDAR}</h2>
         <div className="min-w-[800px]">
@@ -214,12 +215,14 @@ function SubjectRow({ subject }: { subject: Subject }) {
 
         <td>
           <div className="flex items-center gap-1">
-            <details className="dropdown dropdown-hover">
+            <details className="dropdown dropdown-left">
               <summary
                 className="btn btn-ghost btn-outline btn-sm w-min"
                 onClick={(e) => e.stopPropagation()}
               >
-                <DropdownMenuIcon width={20} height={20} />
+                <div className="flex h-full items-center justify-center">
+                  <DropdownMenuIcon width={20} height={20} />
+                </div>
               </summary>
               <ul
                 tabIndex={0}
@@ -230,7 +233,7 @@ function SubjectRow({ subject }: { subject: Subject }) {
                     to={`/subjects?mode=keres_kod_azon&q=${encodeURI(
                       subject.code,
                     )}&f=true`}
-                    className="btn btn-ghost btn-outline btn-sm w-full"
+                    className="btn btn-ghost btn-outline btn-sm flex w-full flex-nowrap"
                     onClick={(e) => {
                       e.stopPropagation();
 

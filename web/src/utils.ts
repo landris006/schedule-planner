@@ -84,8 +84,8 @@ export function hhmmToFloat(hhmm: string) {
   return parseFloat(hour) + parseFloat(minute) / 60;
 }
 
-export function generateColor(code: string) {
-  const hash = code.split('').reduce((acc, char) => {
+export function generateColor(seed: string) {
+  const hash = seed.split('').reduce((acc, char) => {
     return (acc << 5) - acc + char.charCodeAt(0);
   }, 0);
   const hue = Math.floor(hash % 360);

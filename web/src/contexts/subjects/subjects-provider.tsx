@@ -151,7 +151,7 @@ function parseSubjects(htmlString: string) {
       return;
     }
 
-    const time = parseTime(timeString) ?? {};
+    const time = parseTime(timeString) ?? { start: null, end: null, day: null };
 
     const course: Course = {
       code: code,

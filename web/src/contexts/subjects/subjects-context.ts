@@ -54,9 +54,9 @@ export type Course = {
 };
 
 export type Time = {
-  start?: number;
-  end?: number;
-  day?: number;
+  start: number | null;
+  end: number | null;
+  day: number | null;
 };
 
 type SubjectsContextType = {

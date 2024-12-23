@@ -12,6 +12,7 @@ export default function Calendar(props: CalendarOptions) {
       // height="auto"
       initialView="timeGridWeek"
       dayHeaderFormat={{ weekday: 'long' }}
+      slotEventOverlap={false}
       locale={locale}
       contentHeight="80vh"
       headerToolbar={false}
