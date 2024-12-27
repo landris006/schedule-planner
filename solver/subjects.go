@@ -154,7 +154,7 @@ func (course *Course) BreaksNoRules(f []*Filter) bool {
 		return true
 	} else {
 		for _, filter := range f {
-			if !course.ApplyFilter(filter) {
+			if course.ApplyFilter(filter) {
 				return false
 			}
 		}
