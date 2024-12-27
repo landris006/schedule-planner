@@ -6,6 +6,7 @@ import { CopyIcon, LockClosedIcon } from '@radix-ui/react-icons';
 import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import CourseDialog from '@/components/course-dialog';
+import { usePlannerStore } from '@/stores/planner';
 
 export default function EventItem({
   eventInfo,
@@ -15,6 +16,7 @@ export default function EventItem({
   dialogReadOnly?: boolean;
 }) {
   const [isShowingTooltip, setIsShowingTooltip] = useState(false);
+  const { updateCourse } = usePlannerStore();
   const tooltipRef = useRef<HTMLDivElement>(null);
   const { labels } = useLabel();
   const course: Course = eventInfo.event.extendedProps.course;
@@ -85,6 +87,7 @@ export default function EventItem({
       <CourseDialog
         mode={dialogReadOnly ? 'read' : 'edit'}
         courseData={course}
+        onSubmit={updateCourse}
         renderTrigger={(dialogRef) => (
           <div
             className="relative z-0 flex h-full cursor-pointer flex-col gap-0.5"
