@@ -37,17 +37,19 @@ func (schedule *Schedule) EvaluatePick(pickedCourses []*CourseNode) int64 {
 
 	//Szűrjük ki azokat az órákat, amik ütköznének, ha nem lenne megengedett az ütközés
 	for _, node1 := range schedule.PickedCourses.Elements() {
-		group2 := EmptySet[*Course]()
-		//Ha megengedtük az ütközést, akkor biztosan a szomszédai között van
-		for _, node2 := range node1.Neighbors.Minus(excludedCourses).Elements() {
-			group2 = group2.Union(node2.Courses)
-		}
-
 		for _, course1 := range node1.Courses.Elements() {
-			for _, course2 := range group2.Elements() {
-				if course1.OverlapsWith(course2) {
-					invalidCourses.Insert(node1)
-					break
+			//Ha megengedtük az ütközést, akkor biztosan a szomszédai között van
+			for _, node2 := range node1.Neighbors.Minus(excludedCourses).Elements() {
+				for _, course2 := range node2.Courses.Elements() {
+					if course1.OverlapsWith(course2) {
+						//Szedjük ki azt, amelyiknél megengedtük az ütközést. Ha nincs ilyen, akkor azt, amelyik rövidebb
+						if course1.AllowOverlap || (!course2.AllowOverlap && ((course1.Time.End - course1.Time.Start) <= (course2.Time.End - course2.Time.Start))) {
+							invalidCourses.Insert(node1)
+						} else { //!course1.AllowOverlap && (course2.AllowOverlap || ((course1.Time.End - course1.Time.Start) > (course2.Time.End - course2.Time.Start)))
+							invalidCourses.Insert(node2)
+						}
+						break
+					}
 				}
 			}
 			//Ne vizsgáljuk többször azokat, amiket már megvizsgáltunk
@@ -110,17 +112,19 @@ func (schedule *Schedule) CountGaps() int {
 
 	//Szűrjük ki azokat az órákat, amik ütköznének, ha nem lenne megengedett az ütközés
 	for _, node1 := range schedule.PickedCourses.Elements() {
-		group2 := EmptySet[*Course]()
-		//Ha megengedtük az ütközést, akkor biztosan a szomszédai között van
-		for _, node2 := range node1.Neighbors.Minus(excludedCourses).Elements() {
-			group2 = group2.Union(node2.Courses)
-		}
-
 		for _, course1 := range node1.Courses.Elements() {
-			for _, course2 := range group2.Elements() {
-				if course1.OverlapsWith(course2) {
-					invalidCourses.Insert(node1)
-					break
+			//Ha megengedtük az ütközést, akkor biztosan a szomszédai között van
+			for _, node2 := range node1.Neighbors.Minus(excludedCourses).Elements() {
+				for _, course2 := range node2.Courses.Elements() {
+					if course1.OverlapsWith(course2) {
+						//Szedjük ki azt, amelyiknél megengedtük az ütközést. Ha nincs ilyen, akkor azt, amelyik rövidebb
+						if course1.AllowOverlap || (!course2.AllowOverlap && ((course1.Time.End - course1.Time.Start) <= (course2.Time.End - course2.Time.Start))) {
+							invalidCourses.Insert(node1)
+						} else { //!course1.AllowOverlap && (course2.AllowOverlap || ((course1.Time.End - course1.Time.Start) > (course2.Time.End - course2.Time.Start)))
+							invalidCourses.Insert(node2)
+						}
+						break
+					}
 				}
 			}
 			//Ne vizsgáljuk többször azokat, amiket már megvizsgáltunk
