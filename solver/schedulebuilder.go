@@ -63,15 +63,17 @@ func (schedule *Schedule) EvaluatePick(pickedCourses []*CourseNode) int64 {
 	//Nem ad pontos értéket, ha több, rögtön egymás után következő órát adunk hozzá egyszerre az órarendhez
 	for _, pickedCourseNode := range CreateSet(pickedCourses...).Minus(invalidCourses).Elements() {
 		for _, pickedCourse := range pickedCourseNode.Courses.Elements() {
-			var neighborValue = -1
+			var neighborValue = 0
 			for _, node := range schedule.PickedCourses.Elements() {
+				neighborValue -= node.Courses.Size()
 				for _, course := range node.Courses.Elements() {
-					if course.Time.Day == pickedCourse.Time.Day &&
-						(course.Time.Start == pickedCourse.Time.End || course.Time.End == pickedCourse.Time.Start) {
+					if course.AllowOverlap {
 						neighborValue++
+					} else if course.Time.Day == pickedCourse.Time.Day &&
+						(course.Time.Start == pickedCourse.Time.End || course.Time.End == pickedCourse.Time.Start) {
+						neighborValue += 2
 					}
 				}
-
 			}
 			sum += neighborValue * schedule.PickedCourses.Size()
 		}
@@ -107,7 +109,7 @@ func (schedule *Schedule) CountGaps() int {
 	//Lyukasórák számolása a nem fedett végpontok alapján
 	days := EmptySet[int]()
 	endPoints := make(map[int]Set[float32])
-	invalidCourses := EmptySet[*CourseNode]()
+	invalidCourses := EmptySet[*Course]()
 	excludedCourses := EmptySet[*CourseNode]()
 
 	//Szűrjük ki azokat az órákat, amik ütköznének, ha nem lenne megengedett az ütközés
@@ -119,9 +121,9 @@ func (schedule *Schedule) CountGaps() int {
 					if course1.OverlapsWith(course2) {
 						//Szedjük ki azt, amelyiknél megengedtük az ütközést. Ha nincs ilyen, akkor azt, amelyik rövidebb
 						if course1.AllowOverlap || (!course2.AllowOverlap && ((course1.Time.End - course1.Time.Start) <= (course2.Time.End - course2.Time.Start))) {
-							invalidCourses.Insert(node1)
+							invalidCourses.Insert(course1)
 						} else { //!course1.AllowOverlap && (course2.AllowOverlap || ((course1.Time.End - course1.Time.Start) > (course2.Time.End - course2.Time.Start)))
-							invalidCourses.Insert(node2)
+							invalidCourses.Insert(course2)
 						}
 						break
 					}
@@ -132,33 +134,41 @@ func (schedule *Schedule) CountGaps() int {
 		}
 	}
 
-	for _, course_node := range schedule.PickedCourses.Minus(invalidCourses).Elements() {
+	validCourses := EmptySet[*Course]()
+	for _, course_node := range schedule.PickedCourses.Elements() {
 		for _, course := range course_node.Courses.Elements() {
-			day := course.Time.Day.ordinal()
-			if !days.Contains(day) {
-				days.Insert(day)
-				endPoints[day] = EmptySet[float32]()
+			if !course.AllowOverlap {
+				validCourses.Insert(course)
 			}
+		}
+	}
+	validCourses = validCourses.Minus(invalidCourses)
 
-			//Az esti órák között van negyed óra szünet => kerekítsünk fél órákra, hogy "összeérjenek"
-			startTime := course.Time.Start
-			endTime := course.Time.End
+	for _, course := range validCourses.Elements() {
+		day := course.Time.Day.ordinal()
+		if !days.Contains(day) {
+			days.Insert(day)
+			endPoints[day] = EmptySet[float32]()
+		}
 
-			if startTime >= 16 {
-				startTime = float32(math.Floor(float64(2*startTime)) / 2)
-				endTime = float32(math.Ceil(float64(2*endTime)) / 2)
-			}
+		//Az esti órák között van negyed óra szünet => kerekítsünk fél órákra, hogy "összeérjenek"
+		startTime := course.Time.Start
+		endTime := course.Time.End
 
-			if endPoints[day].Contains(startTime) {
-				endPoints[day].Remove(startTime)
-			} else {
-				endPoints[day].Insert(startTime)
-			}
-			if endPoints[day].Contains(endTime) {
-				endPoints[day].Remove(endTime)
-			} else {
-				endPoints[day].Insert(endTime)
-			}
+		if startTime >= 16 {
+			startTime = float32(math.Floor(float64(2*startTime)) / 2)
+			endTime = float32(math.Ceil(float64(2*endTime)) / 2)
+		}
+
+		if endPoints[day].Contains(startTime) {
+			endPoints[day].Remove(startTime)
+		} else {
+			endPoints[day].Insert(startTime)
+		}
+		if endPoints[day].Contains(endTime) {
+			endPoints[day].Remove(endTime)
+		} else {
+			endPoints[day].Insert(endTime)
 		}
 	}
 
