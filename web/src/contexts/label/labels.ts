@@ -366,6 +366,10 @@ export const labels = {
     hu: 'Engedi más tárgy felvételét ugyanebben az időpontban.',
     en: 'Allows the inclusion of other courses in this time slot.',
   },
+  FILTERS: {
+    hu: 'Szűrők',
+    en: 'Filters',
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type Labels = typeof labels;

@@ -3,27 +3,35 @@ import Calendar from '@/components/calendar';
 import { useLabel } from '@/contexts/label/label-context';
 import {
   CourseType,
+  Filter,
   SolverRequest,
   Subject,
-  useSubjects,
 } from '@/contexts/subjects/subjects-context';
 import { usePlannerStore } from '@/stores/planner';
-import { cn, floatToHHMM, useQuery } from '@/utils';
+import { cn, floatToHHMM, hhmmToFloat, useQuery } from '@/utils';
 import {
   CaretUpIcon,
+  CheckIcon,
   DropdownMenuIcon,
   MagnifyingGlassIcon,
   PlusIcon,
+  TrashIcon,
 } from '@radix-ui/react-icons';
 import { useMemo, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import CourseDialog from '@/components/course-dialog';
 import EventItem from '@/components/event-item';
+import Input from '@/components/input';
 
 export default function Planner() {
   const navigate = useNavigate();
-  const { savedSubjects, setResults, calendarSettings, setSlotDuration } =
-    usePlannerStore();
+  const {
+    savedSubjects,
+    setResults,
+    calendarSettings,
+    setSlotDuration,
+    filters,
+  } = usePlannerStore();
   const { labels } = useLabel();
   const solverQuery = useQuery<Subject[], SolverRequest>({
     fetcher: callSolver,
@@ -82,7 +90,7 @@ export default function Planner() {
                     Object.values(c.time).every((v) => !!v),
                   ),
                 ),
-                filters: [],
+                filters,
               });
             }}
           />
@@ -127,6 +135,29 @@ export default function Planner() {
           </table>
         </details>
 
+        <details className="collapse collapse-arrow rounded-md border border-base-content/50 bg-base-200">
+          <summary className="collapse-title text-xl">{labels.FILTERS}</summary>
+          <table className="table collapse-content table-pin-cols table-fixed">
+            <thead className="">
+              <tr className="text-base font-bold text-base-content">
+                <th className="bg-base-100 text-left">{labels.DAY}</th>
+                <th className="bg-base-100 text-left">{labels.START}</th>
+                <th className="bg-base-100 text-left">{labels.END}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filters.map((filter) => (
+                <FilterRow
+                  filter={filter}
+                  key={`${filter.time.day}-${filter.time.start}-${filter.time.end}`}
+                />
+              ))}
+              <FilterRow isNew={true} />
+            </tbody>
+          </table>
+        </details>
+
         <h2 className="text-xl">{labels.CALENDAR}</h2>
         <div className="min-w-[800px]">
           <Calendar
@@ -137,19 +168,49 @@ export default function Planner() {
               latestEndTime === -Infinity ? 24 : latestEndTime + 2,
             )}
             slotDuration={`00:${calendarSettings.slotDuration}:00`}
-            events={savedSubjects.flatMap((subject) =>
-              subject.courses
-                .filter((c) => Object.values(c.time).every((v) => !!v))
-                .map((course) => ({
-                  title: `${subject.name}`,
-                  daysOfWeek: [course.time!.day],
-                  startTime: floatToHHMM(course.time.start!),
-                  duration: floatToHHMM(course.time.end! - course.time.start!),
-                  color: subject.color,
-                  course,
-                })),
-            )}
-            eventContent={(eventInfo) => <EventItem eventInfo={eventInfo} />}
+            events={[
+              ...filters.map((filter) => ({
+                daysOfWeek: [filter.time.day],
+                startTime: floatToHHMM(filter.time.start!),
+                duration: floatToHHMM(filter.time.end! - filter.time.start!),
+                color: 'transparent',
+                filter,
+              })),
+              ...savedSubjects.flatMap((subject) =>
+                subject.courses
+                  .filter((c) => Object.values(c.time).every((v) => !!v))
+                  .map((course) => ({
+                    title: `${subject.name}`,
+                    daysOfWeek: [course.time!.day],
+                    startTime: floatToHHMM(course.time.start!),
+                    duration: floatToHHMM(
+                      course.time.end! - course.time.start!,
+                    ),
+                    color: subject.color,
+                    course,
+                  })),
+              ),
+            ]}
+            eventContent={(eventInfo) =>
+              eventInfo.event.extendedProps.course ? (
+                <EventItem eventInfo={eventInfo} />
+              ) : null
+            }
+            eventDidMount={(eventInfo) => {
+              setTimeout(() => {
+                if (
+                  eventInfo.event.extendedProps.filter &&
+                  eventInfo.el.parentElement
+                ) {
+                  eventInfo.el.parentElement.style.width = '100%';
+                  eventInfo.el.parentElement.style.left = '0';
+                  eventInfo.el.parentElement.style.backgroundColor = 'red';
+                  eventInfo.el.parentElement.style.opacity = '0.5';
+                  eventInfo.el.parentElement.style.zIndex = '100';
+                  eventInfo.el.parentElement.style.pointerEvents = 'none';
+                }
+              });
+            }}
           />
           <label htmlFor="slotDuration">Beosztásköz</label>
           <br />
@@ -189,7 +250,7 @@ function SubjectRow({
   const [isOpen, setIsOpen] = useState(false);
   const { labels, locale } = useLabel();
   const navigate = useNavigate();
-  const { updateCourse, createCourse, savedSubjects } = usePlannerStore();
+  const { updateCourse, createCourse } = usePlannerStore();
 
   const days = [
     labels.SUNDAY,
@@ -263,11 +324,9 @@ function SubjectRow({
                     courseData={{
                       code: `${subject.code}-custom-${subject.courses.filter((c) => c.code.includes('-custom-')).length + 1}`,
                     }}
-                    onSubmit={(courseData) => {
-                      console.log(courseData);
-
-                      createCourse(subject.code, courseData);
-                    }}
+                    onSubmit={(courseData) =>
+                      createCourse(subject.code, courseData)
+                    }
                     renderTrigger={(dialogRef) => (
                       <Button
                         label={labels.COURSE}
@@ -351,5 +410,129 @@ function SubjectRow({
             </tr>
           ))}
     </>
+  );
+}
+
+type FilterRowProps =
+  | {
+      isNew: true;
+      filter?: undefined;
+    }
+  | {
+      isNew?: undefined;
+      filter: Filter;
+    };
+
+function FilterRow({ isNew, filter }: FilterRowProps) {
+  const { labels } = useLabel();
+  const { addFilter, removeFilter, filters } = usePlannerStore();
+
+  const days = [
+    labels.SUNDAY,
+    labels.MONDAY,
+    labels.TUESDAY,
+    labels.WEDNESDAY,
+    labels.THURSDAY,
+    labels.FRIDAY,
+    labels.SATURDAY,
+  ];
+  const [filterData, setFilterData] = useState<Filter>(
+    filter ?? { time: { start: null, end: null, day: 1 } },
+  );
+
+  return (
+    <tr>
+      <td>
+        <select
+          className="select select-bordered select-sm disabled:pl-0 disabled:text-base-content"
+          value={filterData.time.day ?? 0}
+          disabled={!isNew}
+          onChange={(e) => {
+            setFilterData((f) => ({
+              ...f,
+              time: {
+                ...f.time,
+                day: parseInt(e.target.value),
+              },
+            }));
+          }}
+        >
+          {days.map((day, i) => (
+            <option key={day} value={i}>
+              {day}
+            </option>
+          ))}
+        </select>
+      </td>
+      <td>
+        <Input
+          type="time"
+          className="w-min disabled:pl-0 disabled:text-base-content"
+          disabled={!isNew}
+          value={
+            filterData.time.start ? floatToHHMM(filterData.time.start) : ''
+          }
+          onChange={(e) => {
+            setFilterData((f) => ({
+              ...f,
+              time: {
+                ...f.time,
+                start: hhmmToFloat(e.target.value),
+              },
+            }));
+          }}
+        />
+      </td>
+      <td>
+        <Input
+          type="time"
+          className="w-min disabled:pl-0 disabled:text-base-content"
+          disabled={!isNew}
+          value={filterData.time.end ? floatToHHMM(filterData.time.end) : ''}
+          onChange={(e) => {
+            setFilterData((f) => ({
+              ...f,
+              time: {
+                ...f.time,
+                end: hhmmToFloat(e.target.value),
+              },
+            }));
+          }}
+        />
+      </td>
+      <td>
+        <div className="flex justify-end gap-3">
+          {isNew ? (
+            <Button
+              title={labels.CREATE}
+              className="btn btn-outline btn-success btn-sm"
+              icon={<CheckIcon width={20} height={20} />}
+              disabled={
+                !filterData.time.day ||
+                !filterData.time.start ||
+                !filterData.time.end ||
+                filters.some(
+                  (f) =>
+                    f.time.day === filterData.time.day &&
+                    f.time.start === filterData.time.start &&
+                    f.time.end === filterData.time.end,
+                )
+              }
+              onClick={() => {
+                addFilter(filterData);
+                setFilterData({ time: { start: null, end: null, day: null } });
+              }}
+            />
+          ) : (
+            <Button
+              title={labels.DELETE}
+              className="btn btn-outline btn-error btn-sm"
+              icon={<TrashIcon width={20} height={20} />}
+              onClick={() => removeFilter(filterData)}
+            />
+          )}
+        </div>
+      </td>
+    </tr>
   );
 }
