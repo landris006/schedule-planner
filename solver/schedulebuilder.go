@@ -61,8 +61,10 @@ func (schedule *Schedule) EvaluatePick(pickedCourses []*CourseNode) int64 {
 	//0, 1 vagy 2 szomszédja lehet az új órának -> a (szomszéd-1) előjelet ad a súlyozásnak
 	//Szerintem a súlyozás jobb, ha függ az idáig meglevő kurzusokkal: minél több kurzus van, annál inkább javít vagy ront a lyukasóra
 	//Nem ad pontos értéket, ha több, rögtön egymás után következő órát adunk hozzá egyszerre az órarendhez
+	days := EmptySet[int]()
 	for _, pickedCourseNode := range CreateSet(pickedCourses...).Minus(invalidCourses).Elements() {
 		for _, pickedCourse := range pickedCourseNode.Courses.Elements() {
+			days.Insert(pickedCourse.Time.Day.ordinal())
 			var neighborValue = 0
 			for _, node := range schedule.PickedCourses.Elements() {
 				neighborValue -= node.Courses.Size()
@@ -79,7 +81,22 @@ func (schedule *Schedule) EvaluatePick(pickedCourses []*CourseNode) int64 {
 		}
 	}
 
+	//Napok száma
+	sum += 3 * days.Intersection(schedule.listDays()).Size()
+
 	return int64(sum)
+}
+
+func (schedule *Schedule) listDays() Set[int] {
+	days := EmptySet[int]()
+	for _, course_node := range schedule.PickedCourses.Elements() {
+		for _, course := range course_node.Courses.Elements() {
+			if !course.AllowOverlap && !days.Contains(course.Time.Day.ordinal()) {
+				days.Insert(course.Time.Day.ordinal())
+			}
+		}
+	}
+	return days
 }
 
 func (schedule *Schedule) Valid(graph *CourseGraph) bool {
@@ -183,10 +200,13 @@ func (schedule *Schedule) CountGaps() int {
 func (schedule *Schedule) Value() float64 {
 	var size_factor = 2.0
 	var gap_factor = 3.0
+	var day_count_factor = 4
 
 	var sum = size_factor * float64(schedule.PickedCourses.Size())
 
 	sum -= gap_factor * float64(schedule.CountGaps())
+
+	sum += float64(day_count_factor * (7 - schedule.listDays().Size()))
 
 	return sum
 }

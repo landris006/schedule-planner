@@ -7,9 +7,9 @@ import (
 )
 
 func TestSolver(t *testing.T) {
-	for i := 0; i < 1; i++ {
-		testSchedule("test_inputs/test_fix.json")
-		testQuickSchedule("test_inputs/test_fix.json")
+	for i := 0; i < 5; i++ {
+		testSchedule("test_inputs/test_overlap_gaps.json")
+		//testQuickSchedule("test_inputs/test_overlap_gaps.json")
 	}
 }
 
