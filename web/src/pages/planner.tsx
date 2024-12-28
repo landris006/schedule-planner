@@ -250,7 +250,7 @@ function SubjectRow({
   const [isOpen, setIsOpen] = useState(false);
   const { labels, locale } = useLabel();
   const navigate = useNavigate();
-  const { updateCourse, createCourse } = usePlannerStore();
+  const { updateCourse, createCourse, removeCourse } = usePlannerStore();
 
   const days = [
     labels.SUNDAY,
@@ -401,11 +401,19 @@ function SubjectRow({
                   : '-'}
               </td>
               <td>
-                <CourseDialog
-                  mode="edit"
-                  courseData={course}
-                  onSubmit={updateCourse}
-                />
+                <div className="flex gap-2">
+                  <CourseDialog
+                    mode="edit"
+                    courseData={course}
+                    onSubmit={updateCourse}
+                  />
+                  <Button
+                    title={labels.DELETE}
+                    className="btn btn-outline btn-error btn-sm"
+                    icon={<TrashIcon width={20} height={20} />}
+                    onClick={() => removeCourse(subject.code, course.code)}
+                  />
+                </div>
               </td>
             </tr>
           ))}

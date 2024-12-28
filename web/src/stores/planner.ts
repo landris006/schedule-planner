@@ -20,6 +20,10 @@ type PlannerState = {
   ) => void;
   updateCourse: (course: { code: Course['code'] } & Partial<Course>) => void;
   createCourse: (subjectCode: Subject['code'], course: Course) => void;
+  removeCourse: (
+    subjectCode: Subject['code'],
+    courseCode: Course['code'],
+  ) => void;
   setSlotDuration: (slotDuration: number) => void;
 };
 
@@ -103,6 +107,19 @@ export const usePlannerStore = create<PlannerState>()(
                 : c,
             ),
           })),
+        }));
+      },
+      removeCourse: (subjectCode, courseCode) => {
+        set((state) => ({
+          ...state,
+          savedSubjects: state.savedSubjects.map((s) =>
+            s.code === subjectCode
+              ? {
+                  ...s,
+                  courses: s.courses.filter((c) => c.code !== courseCode),
+                }
+              : s,
+          ),
         }));
       },
       createCourse: (subjectCode, course) => {
