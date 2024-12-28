@@ -1,5 +1,6 @@
 import { useLabel } from '@/contexts/label/label-context';
 import { Locale, localeOptions } from '@/contexts/label/labels';
+import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 export default function Layout() {
@@ -48,7 +49,15 @@ export default function Layout() {
           </ul>
         </div>
 
-        <div className="navbar-end">
+        <div className="navbar-end px-2">
+          <a
+            className="btn btn-link btn-sm"
+            href="https://github.com/landris006/schedule-planner"
+            target="_blank"
+          >
+            <GitHubLogoIcon className="h-6 w-6" />
+          </a>
+
           <select
             name="locale"
             id="locale"
