@@ -85,11 +85,12 @@ export default function Planner() {
             isLoading={solverQuery.isLoading}
             onClick={() => {
               solverQuery.fetch({
-                subjects: savedSubjects.filter((s) =>
-                  s.courses.every((c) =>
+                subjects: savedSubjects.map((s) => ({
+                  ...s,
+                  courses: s.courses.filter((c) =>
                     Object.values(c.time).every((v) => !!v),
                   ),
-                ),
+                })),
                 filters,
               });
             }}
