@@ -361,7 +361,7 @@ function SubjectRow({
           .sort((a, b) => a.type - b.type)
           .map((course) => (
             <tr
-              key={course.code + course.instructor + course.time?.day}
+              key={course.id}
               className="animate-course-row-pop-in bg-base-300 last-of-type:border-b-white"
             >
               <td className="parent-line relative whitespace-nowrap py-0 pl-6 pr-3">
@@ -411,7 +411,7 @@ function SubjectRow({
                     title={labels.DELETE}
                     className="btn btn-outline btn-error btn-sm"
                     icon={<TrashIcon width={20} height={20} />}
-                    onClick={() => removeCourse(subject.code, course.code)}
+                    onClick={() => removeCourse(subject.code, course.id)}
                   />
                 </div>
               </td>

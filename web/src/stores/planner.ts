@@ -2,6 +2,7 @@ import { Course, Filter, Subject } from '@/contexts/subjects/subjects-context';
 import { generateColor } from '@/utils';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { v4 as uuid } from 'uuid';
 
 type PlannerState = {
   savedSubjects: Subject[];
@@ -18,12 +19,9 @@ type PlannerState = {
   updateSubject: (
     subject: { code: Subject['code'] } & Partial<Subject>,
   ) => void;
-  updateCourse: (course: { code: Course['code'] } & Partial<Course>) => void;
+  updateCourse: (course: { id: Course['id'] } & Partial<Course>) => void;
   createCourse: (subjectCode: Subject['code'], course: Course) => void;
-  removeCourse: (
-    subjectCode: Subject['code'],
-    courseCode: Course['code'],
-  ) => void;
+  removeCourse: (subjectCode: Subject['code'], courseId: Course['id']) => void;
   setSlotDuration: (slotDuration: number) => void;
 };
 
@@ -99,7 +97,7 @@ export const usePlannerStore = create<PlannerState>()(
           savedSubjects: state.savedSubjects.map((s) => ({
             ...s,
             courses: s.courses.map((c) =>
-              c.code === course.code
+              c.id === course.id
                 ? {
                     ...c,
                     ...course,
@@ -109,14 +107,14 @@ export const usePlannerStore = create<PlannerState>()(
           })),
         }));
       },
-      removeCourse: (subjectCode, courseCode) => {
+      removeCourse: (subjectCode, courseId) => {
         set((state) => ({
           ...state,
           savedSubjects: state.savedSubjects.map((s) =>
             s.code === subjectCode
               ? {
                   ...s,
-                  courses: s.courses.filter((c) => c.code !== courseCode),
+                  courses: s.courses.filter((c) => c.id !== courseId),
                 }
               : s,
           ),
@@ -144,7 +142,26 @@ export const usePlannerStore = create<PlannerState>()(
     }),
     {
       name: 'planner-storage',
-      version: 0,
+      migrate: (_prevState, version) => {
+        if (version == 0) {
+          console.info('Migrating `planner-storage` from version 0 to 1.');
+          // TODO: maybe validate with zod
+          const prevState = _prevState as PlannerState;
+
+          if (Array.isArray(prevState.savedSubjects)) {
+            prevState.savedSubjects = prevState.savedSubjects.map((s) => ({
+              ...s,
+              courses: s.courses.map((c: Course) => ({
+                ...c,
+                id: uuid(),
+              })),
+            }));
+          }
+
+          return prevState;
+        }
+      },
+      version: 0.1,
     },
   ),
 );

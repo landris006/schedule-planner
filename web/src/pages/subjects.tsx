@@ -1,7 +1,6 @@
 import { useMemo, useRef } from 'react';
 import Button from '@/components/button';
 import {
-  ArrowUpIcon,
   MagnifyingGlassIcon,
   MinusIcon,
   PlusIcon,
@@ -16,7 +15,6 @@ import {
 } from '@/contexts/subjects/subjects-context';
 import { usePlannerStore } from '@/stores/planner';
 import { floatToHHMM } from '@/utils';
-import deepEqual from 'fast-deep-equal';
 
 export default function Subjects() {
   const { labels } = useLabel();
@@ -144,56 +142,20 @@ export default function Subjects() {
           );
           const isSaved = !!savedSubject;
 
-          const isChanged = isSaved && !checkEquality();
-
-          function checkEquality() {
-            if (isSaved) {
-              const { color: _, ...savedSubjectWithoutColor } =
-                savedSubject ?? {};
-              savedSubjectWithoutColor.courses =
-                savedSubjectWithoutColor?.courses.map((c) => {
-                  const {
-                    allowOverlap: _,
-                    fix: __,
-                    ...courseWithIgnoredFields
-                  } = c;
-                  return courseWithIgnoredFields;
-                });
-              savedSubjectWithoutColor.courses.sort((a, b) =>
-                JSON.stringify(a).localeCompare(JSON.stringify(b)),
-              );
-
-              return deepEqual(subject, savedSubjectWithoutColor);
-            }
-          }
-
           return (
             <div className="card" key={subject.code}>
               <div className="card-body rounded-md bg-base-200">
                 <h2 className="card-title">
                   {subject.name} ({subject.code})
                 </h2>
-                {isSaved &&
-                  (isChanged ? (
-                    <Button
-                      className="btn btn-outline btn-warning w-min text-nowrap"
-                      label={labels.UPDATE_PLANNER}
-                      tooltip={labels.UPDATE_PLANNER_TOOLTIP}
-                      tooltipDirection="right"
-                      icon={<ArrowUpIcon width={20} height={20} />}
-                      onClick={() => {
-                        removeSubject(subject);
-                        addSubject(subject);
-                      }}
-                    />
-                  ) : (
-                    <Button
-                      className="btn btn-outline btn-error w-min text-nowrap"
-                      label={labels.REMOVE_FROM_PLANNER}
-                      icon={<MinusIcon width={20} height={20} />}
-                      onClick={() => removeSubject(subject)}
-                    />
-                  ))}
+                {isSaved && (
+                  <Button
+                    className="btn btn-outline btn-error w-min text-nowrap"
+                    label={labels.REMOVE_FROM_PLANNER}
+                    icon={<MinusIcon width={20} height={20} />}
+                    onClick={() => removeSubject(subject)}
+                  />
+                )}
                 {!isSaved && (
                   <Button
                     className="btn btn-outline btn-success w-min text-nowrap"
@@ -209,16 +171,7 @@ export default function Subjects() {
                     </h2>
                     <div>
                       {lectures.map((course) => (
-                        <CourseCard
-                          key={
-                            course.code +
-                            course.time?.day +
-                            course.time?.start +
-                            course.place +
-                            course.instructor
-                          }
-                          course={course}
-                        />
+                        <CourseCard key={course.id} course={course} />
                       ))}
                     </div>
                   </>
@@ -232,16 +185,7 @@ export default function Subjects() {
                     </h2>
                     <div className="flex flex-col gap-1">
                       {practices.map((course) => (
-                        <CourseCard
-                          key={
-                            course.code +
-                            course.time?.day +
-                            course.time?.start +
-                            course.place +
-                            course.instructor
-                          }
-                          course={course}
-                        />
+                        <CourseCard key={course.id} course={course} />
                       ))}
                     </div>
                   </>

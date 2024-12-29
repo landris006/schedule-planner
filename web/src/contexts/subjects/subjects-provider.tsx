@@ -11,6 +11,7 @@ import {
 import { hhmmToFloat, useQuery } from '@/utils';
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect } from 'react';
+import { v4 as uuid } from 'uuid';
 
 export default function SubjectsProvider({
   children,
@@ -154,7 +155,8 @@ function parseSubjects(htmlString: string) {
     const time = parseTime(timeString) ?? { start: null, end: null, day: null };
 
     const course: Course = {
-      code: code,
+      id: uuid(),
+      code,
       instructor,
       time,
       place,
@@ -164,7 +166,12 @@ function parseSubjects(htmlString: string) {
 
     const alreadyExists = subject.courses.find(
       // the courses that we are checking are constructed the same way (same order of keys) so this comparison should be fine
-      (c) => JSON.stringify(c) === JSON.stringify(course),
+      (c) => {
+        const { id: _, ...c1 } = c;
+        const { id: __, ...c2 } = course;
+
+        return JSON.stringify(c1) === JSON.stringify(c2);
+      },
     );
 
     if (!alreadyExists) {
@@ -172,14 +179,9 @@ function parseSubjects(htmlString: string) {
     }
   });
 
-  const subjectsArray = Array.from(subjects.values());
-  subjectsArray.forEach((subject) => {
-    subject.courses.sort((a, b) =>
-      JSON.stringify(a).localeCompare(JSON.stringify(b)),
-    );
-  });
-
-  return subjectsArray.filter((course) => course.courses.length > 0);
+  return Array.from(subjects.values()).filter(
+    (course) => course.courses.length > 0,
+  );
 }
 
 function parseTime(timeString: string): Time | undefined {

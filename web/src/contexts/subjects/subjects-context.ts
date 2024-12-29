@@ -43,6 +43,7 @@ export enum CourseType {
 }
 
 export type Course = {
+  id: string;
   time: Time;
   code: string;
   instructor: string;
