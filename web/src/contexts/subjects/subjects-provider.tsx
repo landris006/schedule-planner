@@ -162,6 +162,8 @@ function parseSubjects(htmlString: string) {
       place,
       capacity: parseInt(capacity),
       type: mappedType,
+      fix: false,
+      allowOverlap: false,
     };
 
     const alreadyExists = subject.courses.find(

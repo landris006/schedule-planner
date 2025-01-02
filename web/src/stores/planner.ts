@@ -160,8 +160,27 @@ export const usePlannerStore = create<PlannerState>()(
 
           return prevState;
         }
+
+        if (version == 0.1) {
+          console.info('Migrating `planner-storage` from version 0.1 to 0.2.');
+          // TODO: maybe validate with zod
+          const prevState = _prevState as PlannerState;
+
+          if (Array.isArray(prevState.savedSubjects)) {
+            prevState.savedSubjects = prevState.savedSubjects.map((s) => ({
+              ...s,
+              courses: s.courses.map((c: Course) => ({
+                ...c,
+                fix: c.fix ?? false,
+                allowOverlap: c.allowOverlap ?? false,
+              })),
+            }));
+          }
+
+          return prevState;
+        }
       },
-      version: 0.1,
+      version: 0.2,
     },
   ),
 );
