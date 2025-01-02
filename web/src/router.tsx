@@ -1,9 +1,7 @@
 import { Navigate, createBrowserRouter, redirect } from 'react-router-dom';
 import Layout from '@/pages/layout';
-import Subjects from '@/pages/subjects';
-import Planner from '@/pages/planner';
 import SubjectsProvider from './contexts/subjects/subjects-provider';
-import Results from './pages/results';
+import React from 'react';
 
 export const router = createBrowserRouter([
   {
@@ -20,15 +18,15 @@ export const router = createBrowserRouter([
       },
       {
         path: '/subjects',
-        element: <Subjects />,
+        Component: React.lazy(() => import('./pages/subjects')),
       },
       {
         path: '/planner',
-        element: <Planner />,
+        Component: React.lazy(() => import('./pages/planner')),
       },
       {
         path: '/results',
-        element: <Results />,
+        Component: React.lazy(() => import('./pages/results')),
       },
     ],
   },
