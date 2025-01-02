@@ -143,8 +143,8 @@ export const usePlannerStore = create<PlannerState>()(
     {
       name: 'planner-storage',
       migrate: (_prevState, version) => {
-        if (version == 0) {
-          console.info('Migrating `planner-storage` from version 0 to 1.');
+        if ([0, 0.1].includes(version)) {
+          console.info('Migrating `planner-storage`.');
           // TODO: maybe validate with zod
           const prevState = _prevState as PlannerState;
 
@@ -154,23 +154,6 @@ export const usePlannerStore = create<PlannerState>()(
               courses: s.courses.map((c: Course) => ({
                 ...c,
                 id: uuid(),
-              })),
-            }));
-          }
-
-          return prevState;
-        }
-
-        if (version == 0.1) {
-          console.info('Migrating `planner-storage` from version 0.1 to 0.2.');
-          // TODO: maybe validate with zod
-          const prevState = _prevState as PlannerState;
-
-          if (Array.isArray(prevState.savedSubjects)) {
-            prevState.savedSubjects = prevState.savedSubjects.map((s) => ({
-              ...s,
-              courses: s.courses.map((c: Course) => ({
-                ...c,
                 fix: c.fix ?? false,
                 allowOverlap: c.allowOverlap ?? false,
               })),
