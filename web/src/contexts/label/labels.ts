@@ -378,6 +378,14 @@ export const labels = {
     hu: 'perc',
     en: 'minutes',
   },
+  HERE: {
+    hu: 'itt',
+    en: 'here',
+  },
+  ISSUE_NOTICE: {
+    hu: 'Bármilyen észrevételt vagy javaslatot várunk',
+    en: 'If you encounter any issues or have any suggestions, please feel free to open an issue',
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type Labels = typeof labels;

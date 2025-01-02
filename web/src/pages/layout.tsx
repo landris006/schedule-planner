@@ -8,7 +8,7 @@ export default function Layout() {
   const { locale, setLocale, labels } = useLabel();
 
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       <header className="navbar sticky top-0 z-50 min-h-0 bg-base-200 p-0">
         <div className="navbar-start">
           <MobileNav />
@@ -74,8 +74,26 @@ export default function Layout() {
         </div>
       </header>
 
-      <Outlet />
-    </>
+      <div className="flex-1">
+        <Outlet />
+      </div>
+
+      <footer className="footer footer-center bg-base-300 p-4 text-base-content">
+        <aside>
+          <p>
+            {labels.ISSUE_NOTICE}{' '}
+            <a
+              className="link link-primary"
+              href="https://github.com/landris006/schedule-planner/issues"
+              target="_blank"
+            >
+              {labels.HERE}
+            </a>
+            .
+          </p>
+        </aside>
+      </footer>
+    </div>
   );
 }
 
