@@ -370,6 +370,14 @@ export const labels = {
     hu: 'Szűrők',
     en: 'Filters',
   },
+  SLOT_DURATION: {
+    hu: 'Beosztásköz',
+    en: 'Slot duration',
+  },
+  MINUTES: {
+    hu: 'perc',
+    en: 'minutes',
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type Labels = typeof labels;

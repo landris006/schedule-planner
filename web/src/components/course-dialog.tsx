@@ -1,4 +1,4 @@
-import { Cross1Icon, Pencil1Icon } from '@radix-ui/react-icons';
+import { Cross1Icon, Pencil1Icon, PlusIcon } from '@radix-ui/react-icons';
 import Button from './button';
 import { ReactNode, useRef } from 'react';
 import { useLabel } from '@/contexts/label/label-context';
@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import FormField from './form-field';
 import Input from './input';
 import { Course, CourseType } from '@/contexts/subjects/subjects-context';
-import { floatToHHMM, hhmmToFloat } from '@/utils';
+import { cn, floatToHHMM, hhmmToFloat } from '@/utils';
 import Tooltip from './tooltip';
 import React from 'react';
 
@@ -292,9 +292,17 @@ export default function CourseDialog({
               />
               {mode !== 'read' && (
                 <Button
-                  className="btn-primary btn-md"
-                  label={labels[mode.toUpperCase() as Uppercase<typeof mode>]}
-                  icon={<Pencil1Icon width={20} height={20} />}
+                  className={cn('btn-primary btn-md', {
+                    'btn-success': mode === 'create',
+                  })}
+                  label={mode === 'edit' ? labels.SAVE : labels.CREATE}
+                  icon={
+                    mode === 'edit' ? (
+                      <Pencil1Icon width={20} height={20} />
+                    ) : (
+                      <PlusIcon width={20} height={20} />
+                    )
+                  }
                   type="submit"
                 />
               )}

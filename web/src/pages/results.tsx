@@ -71,7 +71,7 @@ export default function Results() {
               <EventItem dialogReadOnly={true} eventInfo={eventInfo} />
             )}
           />
-          <label htmlFor="slotDuration">Beosztásköz</label>
+          <label htmlFor="slotDuration">{labels.SLOT_DURATION}</label>
           <br />
           <input
             type="range"

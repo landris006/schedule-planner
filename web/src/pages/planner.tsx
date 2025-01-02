@@ -12,6 +12,7 @@ import { cn, floatToHHMM, hhmmToFloat, useQuery } from '@/utils';
 import {
   CaretUpIcon,
   CheckIcon,
+  DoubleArrowRightIcon,
   DropdownMenuIcon,
   MagnifyingGlassIcon,
   PlusIcon,
@@ -76,12 +77,12 @@ export default function Planner() {
     <div className="p-3">
       <div className="mx-auto flex max-w-screen-2xl flex-1 flex-col gap-3 overflow-x-auto px-9">
         <div className="flex justify-between">
-          <h1 className="text-3xl">{labels.PLANNER}</h1>
+          <h1 className="text-2xl">{labels.PLANNER}</h1>
 
           <Button
-            label="Solver"
-            className="btn-primary"
-            icon={<MagnifyingGlassIcon width={20} height={20} />}
+            label={labels.SOLVER}
+            className="btn-primary btn-sm"
+            icon={<DoubleArrowRightIcon width={20} height={20} />}
             isLoading={solverQuery.isLoading}
             onClick={() => {
               solverQuery.fetch({
@@ -98,7 +99,7 @@ export default function Planner() {
         </div>
 
         <details className="collapse collapse-arrow rounded-md border border-base-content/50 bg-base-200">
-          <summary className="collapse-title text-xl">
+          <summary className="collapse-title min-h-0 p-2 after:!-translate-y-[200%]">
             {labels.SAVED_SUBJECTS}
           </summary>
           <table className="table collapse-content table-pin-cols table-fixed">
@@ -137,7 +138,9 @@ export default function Planner() {
         </details>
 
         <details className="collapse collapse-arrow rounded-md border border-base-content/50 bg-base-200">
-          <summary className="collapse-title text-xl">{labels.FILTERS}</summary>
+          <summary className="collapse-title min-h-0 p-2 after:!-translate-y-[200%]">
+            {labels.FILTERS}
+          </summary>
           <table className="table collapse-content table-pin-cols table-fixed">
             <thead className="">
               <tr className="text-base font-bold text-base-content">
@@ -213,18 +216,22 @@ export default function Planner() {
               });
             }}
           />
-          <label htmlFor="slotDuration">Beosztásköz</label>
+          <label htmlFor="slotDuration">{labels.SLOT_DURATION}</label>
           <br />
-          <input
-            type="range"
-            value={calendarSettings.slotDuration}
-            onChange={(e) => setSlotDuration(parseInt(e.target.value))}
-            min={10}
-            step={5}
-            max={40}
-            className="range range-xs w-[30%]"
-          />
-          {calendarSettings.slotDuration}
+          <div className="flex gap-1">
+            <input
+              type="range"
+              value={calendarSettings.slotDuration}
+              onChange={(e) => setSlotDuration(parseInt(e.target.value))}
+              min={10}
+              step={5}
+              max={40}
+              className="range range-xs w-[30%]"
+            />
+            <span>
+              {calendarSettings.slotDuration} {labels.MINUTES}
+            </span>
+          </div>
         </div>
       </div>
     </div>

@@ -26,7 +26,7 @@ export default function EventItem({
       {createPortal(
         <div ref={tooltipRef} className="absolute z-50">
           {isShowingTooltip && (
-            <div className="w-72 rounded-md bg-base-100 p-2 shadow-lg">
+            <div className="w-72 rounded-md border border-base-content/50 bg-base-100 p-2 shadow-lg">
               <div className="flex gap-2">
                 <div className="flex flex-col">
                   <p className="flex justify-between overflow-hidden text-ellipsis font-bold">
@@ -90,7 +90,7 @@ export default function EventItem({
         onSubmit={updateCourse}
         renderTrigger={(dialogRef) => (
           <div
-            className="relative z-0 flex h-full cursor-pointer flex-col gap-0.5"
+            className="relative z-0 flex h-full cursor-pointer flex-col gap-0.5 [container-type:size]"
             onClick={() => dialogRef.current?.showModal()}
             onMouseEnter={(e) => {
               if (!tooltipRef.current) {
@@ -127,8 +127,7 @@ export default function EventItem({
                 </span>
               )}
             </div>
-
-            <p className="flex justify-between font-bold">
+            <p className="flex justify-between gap-1 font-bold">
               {course.time.start && course.time.end
                 ? `${floatToHHMM(course.time.start)}-${floatToHHMM(course.time.end)}`
                 : '-'}
@@ -144,12 +143,9 @@ export default function EventItem({
                 </span>
               )}
             </p>
-            <p className="overflow-hidden text-ellipsis">
+            <p className="overflow-x-hidden text-ellipsis">
               {eventInfo.event.title}
             </p>
-            <p className="overflow-hidden text-ellipsis">{course.code}</p>
-
-            <p className="overflow-hidden text-ellipsis">{course.place}</p>
           </div>
         )}
       />
