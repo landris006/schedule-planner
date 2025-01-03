@@ -9,6 +9,7 @@ import { Course, CourseType } from '@/contexts/subjects/subjects-context';
 import { cn, floatToHHMM, hhmmToFloat } from '@/utils';
 import Tooltip from './tooltip';
 import React from 'react';
+import { v4 as uuid } from 'uuid';
 
 type CourseDialogProps = {
   renderTrigger?: (dialogRef: React.RefObject<HTMLDialogElement>) => ReactNode;
@@ -96,6 +97,10 @@ export default function CourseDialog({
         end: formData.time.end ? hhmmToFloat(formData.time.end) : null,
       },
     };
+
+    if (!courseData.id) {
+      courseData.id = uuid();
+    }
 
     if (typeof onSubmit === 'function') {
       setTimeout(() => {
