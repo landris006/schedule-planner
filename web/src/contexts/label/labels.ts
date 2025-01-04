@@ -386,6 +386,30 @@ export const labels = {
     hu: 'Bármilyen észrevételt vagy javaslatot várunk',
     en: 'If you encounter any issues or have any suggestions, please feel free to open an issue',
   },
+  CREATE_SUBJECT: {
+    hu: 'Tárgy létrehozása',
+    en: 'Create subject',
+  },
+  EDIT_SUBJECT: {
+    hu: 'Tárgy szerkesztése',
+    en: 'Edit subject',
+  },
+  CLEAR: {
+    hu: 'Törlés',
+    en: 'Clear',
+  },
+  COLOR_GENERATION_TOOLTIP: {
+    hu: 'Automatikusan generálódik, üresen hagyás esetén.',
+    en: 'Will be generated if left empty.',
+  },
+  SUBJECT_WITH_THIS_CODE_ALREADY_EXISTS: {
+    hu: 'Már van ilyen kóddal rendelkező tárgy',
+    en: 'There is already a subject with this code',
+  },
+  SHOW_WEEKENDS: {
+    hu: 'Hétvégek mutatása',
+    en: 'Show weekends',
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type Labels = typeof labels;

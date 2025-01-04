@@ -30,6 +30,7 @@ export type Subject = {
   code: string;
   name: string;
   courses: Course[];
+  origin: 'elte' | 'custom';
   color?: string;
 };
 

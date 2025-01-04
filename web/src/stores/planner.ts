@@ -1,5 +1,4 @@
 import { Course, Filter, Subject } from '@/contexts/subjects/subjects-context';
-import { generateColor } from '@/utils';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuid } from 'uuid';
@@ -33,18 +32,21 @@ export const usePlannerStore = create<PlannerState>()(
       filters: [],
       calendarSettings: {
         slotDuration: 30,
+        weekends: false,
       },
       addSubject: (subject) => {
-        set((state) => ({
-          ...state,
-          savedSubjects: [
-            ...state.savedSubjects,
-            {
-              ...subject,
-              color: generateColor(subject.code + subject.name),
-            },
-          ],
-        }));
+        set((state) => {
+          const codeExists = state.savedSubjects.find(
+            (s) => s.code === subject.code,
+          );
+          if (codeExists) {
+            return state;
+          }
+          return {
+            ...state,
+            savedSubjects: [...state.savedSubjects, subject],
+          };
+        });
       },
       addFilter: (filter) => {
         set((state) => ({
@@ -142,11 +144,10 @@ export const usePlannerStore = create<PlannerState>()(
     }),
     {
       name: 'planner-storage',
-      migrate: (_prevState, version) => {
-        if ([0, 0.1].includes(version)) {
-          console.info('Migrating `planner-storage`.');
-          // TODO: maybe validate with zod
-          const prevState = _prevState as PlannerState;
+      migrate: (_prevState, _version) => {
+        console.info('Migrating `planner-storage`.');
+        // TODO: maybe validate with zod
+        const prevState = _prevState as PlannerState;
 
           if (Array.isArray(prevState.savedSubjects)) {
             prevState.savedSubjects = prevState.savedSubjects.map((s) => ({
@@ -160,10 +161,22 @@ export const usePlannerStore = create<PlannerState>()(
             }));
           }
 
-          return prevState;
+        if (Array.isArray(prevState.savedSubjects)) {
+          prevState.savedSubjects = prevState.savedSubjects.map((s) => ({
+            ...s,
+            origin: s.origin ?? 'elte',
+            courses: s.courses.map((c: Course) => ({
+              ...c,
+              id: uuid(),
+              fix: c.fix ?? false,
+              allowOverlap: c.allowOverlap ?? false,
+            })),
+          }));
         }
+
+        return prevState;
       },
-      version: 0.2,
+      version: 0.3,
     },
   ),
 );

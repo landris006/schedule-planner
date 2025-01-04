@@ -28,7 +28,7 @@ export default function EventItem({
           {isShowingTooltip && (
             <div className="w-72 rounded-md border border-base-content/50 bg-base-100 p-2 shadow-lg">
               <div className="flex gap-2">
-                <div className="flex flex-col">
+                <div className="flex w-full flex-col">
                   <p className="flex justify-between overflow-hidden text-ellipsis font-bold">
                     {course.time.start && course.time.end
                       ? `${floatToHHMM(course.time.start)}-${floatToHHMM(course.time.end)}`

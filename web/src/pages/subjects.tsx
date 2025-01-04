@@ -14,7 +14,7 @@ import {
   useSubjects,
 } from '@/contexts/subjects/subjects-context';
 import { usePlannerStore } from '@/stores/planner';
-import { floatToHHMM } from '@/utils';
+import { floatToHHMM, generateColor } from '@/utils';
 
 export default function Subjects() {
   const { labels } = useLabel();
@@ -161,7 +161,12 @@ export default function Subjects() {
                     className="btn btn-outline btn-success w-min text-nowrap"
                     label={labels.ADD_TO_PLANNER}
                     icon={<PlusIcon width={20} height={20} />}
-                    onClick={() => addSubject(subject)}
+                    onClick={() =>
+                      addSubject({
+                        ...subject,
+                        color: generateColor(subject.code + subject.name),
+                      })
+                    }
                   />
                 )}
                 {lectures.length > 0 && (

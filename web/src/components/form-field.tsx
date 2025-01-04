@@ -1,7 +1,9 @@
 import { cn } from '@/utils';
+import { ReactNode } from 'react';
 
 type FormFieldProps = {
   label: string;
+  labelIcon?: ReactNode;
   errorMessage?: string;
   required?: boolean;
   preventLabelClick?: boolean;
@@ -14,6 +16,7 @@ export default function FormField({
   errorMessage,
   preventLabelClick,
   className,
+  labelIcon,
   children,
 }: FormFieldProps) {
   return (
@@ -24,7 +27,7 @@ export default function FormField({
       <div className="label">
         <span className="label-text">
           {label}
-          {required && <span className="text-error">*</span>}
+          {required && <span className="text-error">*</span>} {labelIcon}
         </span>
       </div>
 

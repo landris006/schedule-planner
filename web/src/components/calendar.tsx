@@ -18,6 +18,7 @@ export default function Calendar(props: CalendarOptions) {
       headerToolbar={false}
       nowIndicator={true}
       weekends={false}
+      firstDay={1}
       allDaySlot={false}
       slotLabelFormat={{
         hour: '2-digit',

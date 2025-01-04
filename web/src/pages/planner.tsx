@@ -23,6 +23,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import CourseDialog from '@/components/course-dialog';
 import EventItem from '@/components/event-item';
 import Input from '@/components/input';
+import SubjectDialog from '@/components/subject-dialog';
 
 export default function Planner() {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ export default function Planner() {
     calendarSettings,
     setSlotDuration,
     filters,
+    addSubject,
   } = usePlannerStore();
   const { labels } = useLabel();
   const solverQuery = useQuery<Subject[], SolverRequest>({
@@ -100,41 +102,62 @@ export default function Planner() {
 
         <details className="collapse collapse-arrow rounded-md border border-base-content/50 bg-base-200">
           <summary className="collapse-title min-h-0 p-2 after:!-translate-y-[200%]">
-            {labels.SAVED_SUBJECTS}
+            <div className="flex items-center gap-2">
+              <span>{labels.SAVED_SUBJECTS}</span>
+            </div>
           </summary>
-          <table className="table collapse-content table-pin-cols table-fixed">
-            <thead className="">
-              <tr className="text-base font-bold text-base-content">
-                <th className="bg-base-100 text-left">{labels.CODE}</th>
-                <th className="bg-base-100 text-left">{labels.NAME}</th>
 
-                <th className="hidden bg-base-100 text-left md:table-cell">
-                  {labels.TYPE}
-                </th>
-                <th className="hidden bg-base-100 text-left md:table-cell">
-                  {labels.INSTRUCTOR}
-                </th>
-                <th className="hidden bg-base-100 text-left md:table-cell">
-                  {labels.PLACE}
-                </th>
-                <th className="hidden bg-base-100 text-left md:table-cell">
-                  {labels.TIME}
-                </th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {savedSubjects
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((subject, i) => (
-                  <SubjectRow
-                    key={subject.code}
-                    subject={subject}
-                    isLast={i === savedSubjects.length - 1}
-                  />
-                ))}
-            </tbody>
-          </table>
+          <div className="collapse-content flex flex-col gap-1">
+            <SubjectDialog
+              mode="create"
+              renderTrigger={(dialogRef) => (
+                <Button
+                  className="btn-outline btn-success btn-sm ml-auto"
+                  label={labels.CREATE_SUBJECT}
+                  icon={<PlusIcon width={20} height={20} />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    dialogRef.current?.showModal();
+                  }}
+                />
+              )}
+              onSubmit={addSubject}
+            />
+
+            <table className="table table-pin-cols table-fixed">
+              <thead className="">
+                <tr className="text-base font-bold text-base-content">
+                  <th className="bg-base-100 text-left">{labels.CODE}</th>
+                  <th className="bg-base-100 text-left">{labels.NAME}</th>
+
+                  <th className="hidden bg-base-100 text-left md:table-cell">
+                    {labels.TYPE}
+                  </th>
+                  <th className="hidden bg-base-100 text-left md:table-cell">
+                    {labels.INSTRUCTOR}
+                  </th>
+                  <th className="hidden bg-base-100 text-left md:table-cell">
+                    {labels.PLACE}
+                  </th>
+                  <th className="hidden bg-base-100 text-left md:table-cell">
+                    {labels.TIME}
+                  </th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {savedSubjects
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((subject, i) => (
+                    <SubjectRow
+                      key={subject.code}
+                      subject={subject}
+                      isLast={i === savedSubjects.length - 1}
+                    />
+                  ))}
+              </tbody>
+            </table>
+          </div>
         </details>
 
         <details className="collapse collapse-arrow rounded-md border border-base-content/50 bg-base-200">
@@ -258,7 +281,8 @@ function SubjectRow({
   const [isOpen, setIsOpen] = useState(false);
   const { labels, locale } = useLabel();
   const navigate = useNavigate();
-  const { updateCourse, createCourse, removeCourse } = usePlannerStore();
+  const { updateCourse, createCourse, removeCourse, removeSubject } =
+    usePlannerStore();
 
   const days = [
     labels.SUNDAY,
@@ -308,24 +332,26 @@ function SubjectRow({
                 tabIndex={0}
                 className="dropdown-content z-[1] flex w-min flex-col gap-2 rounded-box bg-base-100 p-2 shadow"
               >
-                <li>
-                  <NavLink
-                    to={`/subjects?mode=keres_kod_azon&q=${encodeURI(
-                      subject.code,
-                    )}&f=true`}
-                    className="btn btn-ghost btn-outline btn-sm flex w-full flex-nowrap"
-                    onClick={(e) => {
-                      e.stopPropagation();
+                {subject.origin === 'elte' && (
+                  <li>
+                    <NavLink
+                      to={`/subjects?mode=keres_kod_azon&q=${encodeURI(
+                        subject.code,
+                      )}&f=true`}
+                      className="btn btn-ghost btn-outline btn-sm flex w-full flex-nowrap"
+                      onClick={(e) => {
+                        e.stopPropagation();
 
-                      navigate(
-                        `/subjects?mode=keres_kod_azon&q=${encodeURI(subject.code)}&f=true`,
-                      );
-                    }}
-                  >
-                    {labels.SEARCH}
-                    <MagnifyingGlassIcon width={20} height={20} />
-                  </NavLink>
-                </li>
+                        navigate(
+                          `/subjects?mode=keres_kod_azon&q=${encodeURI(subject.code)}&f=true`,
+                        );
+                      }}
+                    >
+                      {labels.SEARCH}
+                      <MagnifyingGlassIcon width={20} height={20} />
+                    </NavLink>
+                  </li>
+                )}
                 <li>
                   <CourseDialog
                     mode="create"
@@ -350,6 +376,15 @@ function SubjectRow({
                       // @ts-expect-error blur is not recognized
                       document.activeElement?.blur?.();
                     }}
+                  />
+                </li>
+
+                <li>
+                  <Button
+                    label={labels.DELETE}
+                    className="btn btn-outline btn-error btn-sm w-full"
+                    onClick={() => removeSubject(subject)}
+                    icon={<TrashIcon width={20} height={20} />}
                   />
                 </li>
               </ul>

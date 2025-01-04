@@ -143,6 +143,7 @@ function parseSubjects(htmlString: string) {
         code: subjectCode,
         name: name,
         courses: [],
+        origin: 'elte',
       });
     }
     subject = subjects.get(subjectCode)!;
