@@ -149,17 +149,17 @@ export const usePlannerStore = create<PlannerState>()(
         // TODO: maybe validate with zod
         const prevState = _prevState as PlannerState;
 
-          if (Array.isArray(prevState.savedSubjects)) {
-            prevState.savedSubjects = prevState.savedSubjects.map((s) => ({
-              ...s,
-              courses: s.courses.map((c: Course) => ({
-                ...c,
-                id: uuid(),
-                fix: c.fix ?? false,
-                allowOverlap: c.allowOverlap ?? false,
-              })),
-            }));
-          }
+        if (Array.isArray(prevState.savedSubjects)) {
+          prevState.savedSubjects = prevState.savedSubjects.map((s) => ({
+            ...s,
+            courses: s.courses.map((c: Course) => ({
+              ...c,
+              id: uuid(),
+              fix: c.fix ?? false,
+              allowOverlap: c.allowOverlap ?? false,
+            })),
+          }));
+        }
 
         if (Array.isArray(prevState.savedSubjects)) {
           prevState.savedSubjects = prevState.savedSubjects.map((s) => ({

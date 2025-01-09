@@ -15,6 +15,7 @@ import {
   DoubleArrowRightIcon,
   DropdownMenuIcon,
   MagnifyingGlassIcon,
+  Pencil1Icon,
   PlusIcon,
   TrashIcon,
 } from '@radix-ui/react-icons';
@@ -281,8 +282,13 @@ function SubjectRow({
   const [isOpen, setIsOpen] = useState(false);
   const { labels, locale } = useLabel();
   const navigate = useNavigate();
-  const { updateCourse, createCourse, removeCourse, removeSubject } =
-    usePlannerStore();
+  const {
+    updateCourse,
+    createCourse,
+    removeCourse,
+    removeSubject,
+    updateSubject,
+  } = usePlannerStore();
 
   const days = [
     labels.SUNDAY,
@@ -376,6 +382,25 @@ function SubjectRow({
                       // @ts-expect-error blur is not recognized
                       document.activeElement?.blur?.();
                     }}
+                  />
+                </li>
+
+                <li>
+                  <SubjectDialog
+                    mode="edit"
+                    subjectData={subject}
+                    renderTrigger={(dialogRef) => (
+                      <Button
+                        className="btn-outline btn-info btn-sm ml-auto w-full"
+                        label={labels.EDIT}
+                        icon={<Pencil1Icon width={20} height={20} />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          dialogRef.current?.showModal();
+                        }}
+                      />
+                    )}
+                    onSubmit={updateSubject}
                   />
                 </li>
 

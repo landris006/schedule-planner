@@ -410,6 +410,10 @@ export const labels = {
     hu: 'Hétvégek mutatása',
     en: 'Show weekends',
   },
+  GENERATE: {
+    hu: 'Generálás',
+    en: 'Generate',
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type Labels = typeof labels;

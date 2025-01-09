@@ -1,4 +1,9 @@
-import { Cross1Icon, Pencil1Icon, PlusIcon } from '@radix-ui/react-icons';
+import {
+  Cross1Icon,
+  Pencil1Icon,
+  PlusIcon,
+  SymbolIcon,
+} from '@radix-ui/react-icons';
 import Button from './button';
 import { ReactNode, useRef } from 'react';
 import { useLabel } from '@/contexts/label/label-context';
@@ -8,7 +13,6 @@ import Input from './input';
 import { Subject } from '@/contexts/subjects/subjects-context';
 import { cn, generateColor } from '@/utils';
 import React from 'react';
-import Tooltip from './tooltip';
 import { usePlannerStore } from '@/stores/planner';
 
 type SubjectDialogProps = {
@@ -52,7 +56,7 @@ export default function SubjectDialog({
   const {
     register,
     handleSubmit,
-    formState: { errors, isDirty },
+    formState: { errors },
     setValue,
     control,
   } = useForm<FormData>({
@@ -63,7 +67,8 @@ export default function SubjectDialog({
   async function submitHandler(formData: FormData) {
     const subject: Subject = {
       ...formData,
-      courses: [],
+      courses: subjectData?.courses ?? [],
+      color: formData.color ?? generateColor(Math.random().toString()),
       origin: 'custom',
     };
 
@@ -72,6 +77,7 @@ export default function SubjectDialog({
     }
 
     if (typeof onSubmit === 'function') {
+      // delay one tick to allow the dialog to close instantly
       setTimeout(() => {
         onSubmit(subject);
       });
@@ -165,18 +171,11 @@ export default function SubjectDialog({
                 {...register('name', {
                   required: true,
                 })}
-                value={subjectData?.name}
               />
             </FormField>
 
             <FormField
               label={labels.COLOR}
-              labelIcon={
-                <Tooltip
-                  className="tooltip-right"
-                  text={labels.COLOR_GENERATION_TOOLTIP}
-                />
-              }
               errorMessage={errors.color?.message}
             >
               <Controller
@@ -189,17 +188,20 @@ export default function SubjectDialog({
                       type="color"
                       placeholder={labels.COLOR}
                       aria-invalid={!!errors.color}
-                      value={subjectData?.color}
                     />
-                    {field.value && (
-                      <button
-                        title={labels.CLEAR}
-                        type="button"
-                        onClick={() => setValue('color', undefined)}
-                      >
-                        <Cross1Icon />
-                      </button>
-                    )}
+
+                    <button
+                      title={labels.GENERATE}
+                      type="button"
+                      onClick={() =>
+                        setValue(
+                          'color',
+                          generateColor(Math.random().toString()),
+                        )
+                      }
+                    >
+                      <SymbolIcon />
+                    </button>
                   </div>
                 )}
               />
@@ -218,7 +220,6 @@ export default function SubjectDialog({
                   'btn-success': mode === 'create',
                 })}
                 label={mode === 'edit' ? labels.SAVE : labels.CREATE}
-                disabled={!isDirty}
                 icon={
                   mode === 'edit' ? (
                     <Pencil1Icon width={20} height={20} />
