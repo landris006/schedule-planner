@@ -414,6 +414,10 @@ export const labels = {
     hu: 'Generálás',
     en: 'Generate',
   },
+  SUBJECTS_WERE_LEFT_OUT: {
+    hu: 'Vannak tárgyak, amelyeket nem kerültek felvételre!',
+    en: 'There are subjects that were not included!',
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type Labels = typeof labels;

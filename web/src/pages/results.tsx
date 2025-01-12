@@ -4,14 +4,14 @@ import { useLabel } from '@/contexts/label/label-context';
 import { usePlannerStore } from '@/stores/planner';
 import { useMemo } from 'react';
 import EventItem from '@/components/event-item';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 
 export default function Results() {
   const { labels } = useLabel();
-
   const { results, calendarSettings, setSlotDuration } = usePlannerStore();
 
   const [earliestStartTime, latestEndTime] = useMemo(() => {
-    const earliestStartTime = results.reduce(
+    const earliestStartTime = results.output.reduce(
       (acc, subject) =>
         Math.min(
           acc,
@@ -24,7 +24,7 @@ export default function Results() {
         ),
       Infinity,
     );
-    const latestEndTime = results.reduce(
+    const latestEndTime = results.output.reduce(
       (acc, subject) =>
         Math.max(
           acc,
@@ -41,10 +41,40 @@ export default function Results() {
     return [earliestStartTime, latestEndTime];
   }, [results]);
 
+  const leftOutSubjects = useMemo(
+    () =>
+      results.input.subjects.filter(
+        (subject) => !results.output.find((s) => s.code === subject.code),
+      ),
+    [results],
+  );
+
   return (
     <div className="p-3">
-      <div className="mx-auto max-w-7xl flex-1 overflow-x-auto">
-        <h1 className="text-3xl">{labels.RESULTS}</h1>
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 overflow-x-auto">
+        <h1 className="hidden">{labels.RESULTS}</h1>
+
+        {leftOutSubjects.length > 0 && (
+          <details role="alert" className="collapse collapse-arrow bg-base-200">
+            <summary className="collapse-title text-xl font-medium">
+              <div className="flex items-center gap-2">
+                <ExclamationTriangleIcon
+                  className="text-error"
+                  width={20}
+                  height={20}
+                />
+                <span>{labels.SUBJECTS_WERE_LEFT_OUT}</span>
+              </div>
+            </summary>
+            <div className="collapse-content">
+              {leftOutSubjects.map((subject, i) => (
+                <span key={subject.code}>
+                  {i + 1}. {subject.name} ({subject.code})
+                </span>
+              ))}
+            </div>
+          </details>
+        )}
 
         <div className="min-w-[800px]">
           <Calendar
@@ -55,7 +85,7 @@ export default function Results() {
               latestEndTime === -Infinity ? 24 : latestEndTime + 2,
             )}
             slotDuration={`00:${calendarSettings.slotDuration}:00`}
-            events={results.flatMap((subject) =>
+            events={results.output.flatMap((subject) =>
               subject.courses
                 .filter((c) => Object.values(c.time).every((v) => !!v))
                 .map((course) => ({

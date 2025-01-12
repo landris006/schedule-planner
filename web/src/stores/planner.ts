@@ -1,17 +1,27 @@
-import { Course, Filter, Subject } from '@/contexts/subjects/subjects-context';
+import {
+  Course,
+  Filter,
+  SolverRequest,
+  Subject,
+} from '@/contexts/subjects/subjects-context';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuid } from 'uuid';
 
+type Results = {
+  input: SolverRequest;
+  output: Subject[];
+};
+
 type PlannerState = {
   savedSubjects: Subject[];
-  results: Subject[];
+  results: Results;
   filters: Filter[];
   calendarSettings: {
     slotDuration: number;
   };
   addSubject: (subject: Subject) => void;
-  setResults: (results: Subject[]) => void;
+  setResults: (results: Results) => void;
   addFilter: (filter: Filter) => void;
   removeFilter: (filter: Filter) => void;
   removeSubject: (subject: Subject) => void;
@@ -28,7 +38,13 @@ export const usePlannerStore = create<PlannerState>()(
   persist(
     (set) => ({
       savedSubjects: [],
-      results: [],
+      results: {
+        input: {
+          subjects: [],
+          filters: [],
+        },
+        output: [],
+      },
       filters: [],
       calendarSettings: {
         slotDuration: 30,
@@ -152,18 +168,6 @@ export const usePlannerStore = create<PlannerState>()(
         if (Array.isArray(prevState.savedSubjects)) {
           prevState.savedSubjects = prevState.savedSubjects.map((s) => ({
             ...s,
-            courses: s.courses.map((c: Course) => ({
-              ...c,
-              id: uuid(),
-              fix: c.fix ?? false,
-              allowOverlap: c.allowOverlap ?? false,
-            })),
-          }));
-        }
-
-        if (Array.isArray(prevState.savedSubjects)) {
-          prevState.savedSubjects = prevState.savedSubjects.map((s) => ({
-            ...s,
             origin: s.origin ?? 'elte',
             courses: s.courses.map((c: Course) => ({
               ...c,
@@ -174,9 +178,24 @@ export const usePlannerStore = create<PlannerState>()(
           }));
         }
 
+        if (
+          !prevState.results ||
+          !prevState.results?.output ||
+          !prevState.results?.input?.subjects ||
+          !prevState.results?.input?.filters
+        ) {
+          prevState.results = {
+            input: {
+              subjects: [],
+              filters: [],
+            },
+            output: [],
+          };
+        }
+
         return prevState;
       },
-      version: 0.3,
+      version: 0.4,
     },
   ),
 );

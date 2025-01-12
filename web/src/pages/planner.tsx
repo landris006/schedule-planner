@@ -39,8 +39,11 @@ export default function Planner() {
   const { labels } = useLabel();
   const solverQuery = useQuery<Subject[], SolverRequest>({
     fetcher: callSolver,
-    onSuccess: (data) => {
-      setResults(data);
+    onSuccess: (output, input) => {
+      setResults({
+        input,
+        output,
+      });
       navigate('/results');
     },
   });

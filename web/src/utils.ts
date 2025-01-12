@@ -11,7 +11,7 @@ export function useQuery<T, U = undefined>({
   onSuccess,
 }: {
   fetcher: (input: U) => Promise<T>;
-  onSuccess?: (data: T) => void;
+  onSuccess?: (response: T, input: U) => void;
 }) {
   const [data, setData] = useState<T>();
   const [status, setStatus] = useState<
@@ -23,7 +23,9 @@ export function useQuery<T, U = undefined>({
     fetcher(input)
       .then((data) => {
         setData(data);
-        onSuccess?.(data);
+        if (typeof onSuccess === 'function') {
+          onSuccess(data, input);
+        }
         setStatus('success');
       })
       .catch((error) => {
