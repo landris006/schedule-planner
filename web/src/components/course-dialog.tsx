@@ -75,7 +75,7 @@ export default function CourseDialog({
       type: CourseType.Lecture,
       ...courseData,
       time: {
-        day: courseData?.time?.day ?? undefined,
+        day: courseData?.time?.day ?? 1,
         start: courseData?.time?.start
           ? floatToHHMM(courseData?.time.start)
           : undefined,
