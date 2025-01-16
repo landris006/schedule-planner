@@ -1,4 +1,4 @@
-import { useQuery } from '@/utils';
+import { generateSemesters, useQuery } from '@/utils';
 import { Dispatch, SetStateAction, createContext, useContext } from 'react';
 
 export type QueryOptions = {
@@ -14,12 +14,7 @@ export const SEARCH_MODES = [
   'keres_oktnk',
 ] as const;
 
-const year = new Date().getFullYear();
-export const SEMESTERS: string[] = Array.from(
-  { length: 6 },
-  (_, i) =>
-    `${year - Math.round(i / 2)}-${year + 1 - Math.round(i / 2)}-${(i % 2) + 1}`, // 🤮
-);
+export const SEMESTERS: string[] = generateSemesters();
 
 export type SolverRequest = {
   subjects: Subject[];

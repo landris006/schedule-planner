@@ -107,3 +107,22 @@ function hslToHex(h: number, s: number, l: number) {
   };
   return `#${f(0)}${f(8)}${f(4)}`;
 }
+
+export function generateSemesters() {
+  const year = new Date().getFullYear();
+  const month = new Date().getMonth();
+
+  const semesters = Array.from(
+    { length: 7 },
+    (_, i) =>
+      `${year - Math.round(i / 2)}-${year + 1 - Math.round(i / 2)}-${(i % 2) + 1}`, // 🤮
+  );
+
+  if (month < 5) {
+    semesters.shift();
+  } else {
+    semesters.pop();
+  }
+
+  return semesters;
+}
