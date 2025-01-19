@@ -69,7 +69,7 @@ export default function CourseDialog({
   const {
     register,
     handleSubmit,
-    formState: { errors, isDirty },
+    formState: { errors },
   } = useForm<FormData>({
     disabled: mode === 'read',
     defaultValues: {
@@ -300,7 +300,6 @@ export default function CourseDialog({
                     'btn-success': mode === 'create',
                   })}
                   label={mode === 'edit' ? labels.SAVE : labels.CREATE}
-                  disabled={!isDirty}
                   icon={
                     mode === 'edit' ? (
                       <Pencil1Icon width={20} height={20} />
