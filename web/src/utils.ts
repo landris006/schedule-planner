@@ -87,12 +87,14 @@ export function hhmmToFloat(hhmm: string) {
 }
 
 export function generateColor(seed: string) {
-  const hash = seed.split('').reduce((acc, char) => {
-    return (acc << 5) - acc + char.charCodeAt(0);
-  }, 0);
-  const hue = Math.floor(hash % 360);
+  const hash = Math.abs(
+    seed.split('').reduce((acc, char) => {
+      return (acc << 5) - acc + char.charCodeAt(0);
+    }, 0),
+  );
+  const hue = Math.floor(hash % 360) + 1;
 
-  return hslToHex(hue, 100, 50);
+  return hslToHex(hue, 100, 30);
 }
 
 function hslToHex(h: number, s: number, l: number) {
