@@ -68,24 +68,6 @@ export function parseCookie(cookieString: string): Record<string, string> {
   return parsedCookie;
 }
 
-/**
- * Converts a float number to a string in the format "HH:MM".
- * (Does not check if the result is a valid time.)
- **/
-export function floatToHHMM(float: number) {
-  const hour = Math.floor(float);
-  const minute = Math.floor((float - hour) * 60);
-  return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-}
-
-/**
- * Converts a string in the format "HH:MM" to a float number.
- **/
-export function hhmmToFloat(hhmm: string) {
-  const [hour, minute] = hhmm.split(':');
-  return parseFloat(hour) + parseFloat(minute) / 60;
-}
-
 export function generateColor(seed: string) {
   const hash = Math.abs(
     seed.split('').reduce((acc, char) => {

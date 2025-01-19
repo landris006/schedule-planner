@@ -8,7 +8,7 @@ import {
   Subject,
 } from '@/contexts/subjects/subjects-context';
 import { usePlannerStore } from '@/stores/planner';
-import { cn, floatToHHMM, hhmmToFloat, useQuery } from '@/utils';
+import { cn, useQuery } from '@/utils';
 import {
   CaretUpIcon,
   CheckIcon,
@@ -25,6 +25,7 @@ import CourseDialog from '@/components/course-dialog';
 import EventItem from '@/components/event-item';
 import Input from '@/components/input';
 import SubjectDialog from '@/components/subject-dialog';
+import { Time } from '@/time';
 
 export default function Planner() {
   const navigate = useNavigate();
@@ -49,32 +50,20 @@ export default function Planner() {
   });
 
   const [earliestStartTime, latestEndTime] = useMemo(() => {
-    const earliestStartTime = savedSubjects.reduce(
-      (acc, subject) =>
-        Math.min(
-          acc,
-          subject.courses
-            .filter((c) => Object.values(c.time).every((v) => !!v))
-            .reduce(
-              (acc, course) => Math.min(acc, course.time!.start ?? 0),
-              Infinity,
-            ),
-        ),
-      Infinity,
-    );
-    const latestEndTime = savedSubjects.reduce(
-      (acc, subject) =>
-        Math.max(
-          acc,
-          subject.courses
-            .filter((c) => Object.values(c.time).every((v) => !!v))
-            .reduce(
-              (acc, course) => Math.max(acc, course.time!.end ?? Infinity),
-              -Infinity,
-            ),
-        ),
-      -Infinity,
-    );
+    const earliestStartTime = savedSubjects
+      .flatMap((s) => s.courses)
+      .reduce(
+        (acc, course) =>
+          course.slot.start?.isBefore(acc) ? course.slot.start : acc,
+        Time.fromHHMM('23:59'),
+      );
+    const latestEndTime = savedSubjects
+      .flatMap((s) => s.courses)
+      .reduce(
+        (acc, course) =>
+          course.slot.end?.isAfter(acc) ? course.slot.end : acc,
+        Time.fromHHMM('00:00'),
+      );
 
     return [earliestStartTime, latestEndTime];
   }, [savedSubjects]);
@@ -95,7 +84,7 @@ export default function Planner() {
                 subjects: savedSubjects.map((s) => ({
                   ...s,
                   courses: s.courses.filter((c) =>
-                    Object.values(c.time).every((v) => !!v),
+                    Object.values(c.slot).every((v) => !!v),
                   ),
                 })),
                 filters,
@@ -181,7 +170,7 @@ export default function Planner() {
               {filters.map((filter) => (
                 <FilterRow
                   filter={filter}
-                  key={`${filter.time.day}-${filter.time.start}-${filter.time.end}`}
+                  key={`${filter.slot.day}-${filter.slot.start}-${filter.slot.end}`}
                 />
               ))}
               <FilterRow isNew={true} />
@@ -192,31 +181,29 @@ export default function Planner() {
         <h2 className="text-xl">{labels.CALENDAR}</h2>
         <div className="min-w-[800px]">
           <Calendar
-            slotMinTime={floatToHHMM(
-              earliestStartTime === Infinity ? 0 : earliestStartTime - 2,
-            )}
-            slotMaxTime={floatToHHMM(
-              latestEndTime === -Infinity ? 24 : latestEndTime + 2,
-            )}
+            slotMinTime={earliestStartTime.subtract(Time.fromHours(2)).toHHMM()}
+            slotMaxTime={latestEndTime.add(Time.fromHours(2)).toHHMM()}
             slotDuration={`00:${calendarSettings.slotDuration}:00`}
             events={[
               ...filters.map((filter) => ({
-                daysOfWeek: [filter.time.day],
-                startTime: floatToHHMM(filter.time.start!),
-                duration: floatToHHMM(filter.time.end! - filter.time.start!),
+                daysOfWeek: [filter.slot.day],
+                startTime: filter.slot.start!.toHHMM(),
+                duration: filter.slot
+                  .end!.subtract(filter.slot.start!)
+                  .toHHMM(),
                 color: 'transparent',
                 filter,
               })),
               ...savedSubjects.flatMap((subject) =>
                 subject.courses
-                  .filter((c) => Object.values(c.time).every((v) => !!v))
+                  .filter((c) => Object.values(c.slot).every((v) => !!v))
                   .map((course) => ({
                     title: `${subject.name}`,
-                    daysOfWeek: [course.time!.day],
-                    startTime: floatToHHMM(course.time.start!),
-                    duration: floatToHHMM(
-                      course.time.end! - course.time.start!,
-                    ),
+                    daysOfWeek: [course.slot!.day],
+                    startTime: course.slot.start!.toHHMM(),
+                    duration: course.slot
+                      .end!.subtract(course.slot.start!)
+                      .toHHMM(),
                     color: subject.color,
                     course,
                   })),
@@ -271,8 +258,27 @@ async function callSolver(queryOptions: SolverRequest) {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(queryOptions),
-  }).then((res) => res.json());
+    body: JSON.stringify(queryOptions, (_key, value) => {
+      if (value instanceof Time) {
+        return value.minutes;
+      }
+      return value;
+    }),
+  })
+    .then((res) => res.text())
+    .then((jsonString) =>
+      JSON.parse(jsonString, (key, value) => {
+        if (key === 'slot') {
+          return {
+            day: value.day,
+            start: Time.fromMinutes(value.start),
+            end: Time.fromMinutes(value.end),
+          };
+        }
+
+        return value;
+      }),
+    );
 }
 
 function SubjectRow({
@@ -467,8 +473,8 @@ function SubjectRow({
               </td>
               <td className="hidden md:table-cell">{course.place}</td>
               <td className="hidden md:table-cell">
-                {course.time.day && course.time.start && course.time.end
-                  ? `${days[course.time.day]}, ${floatToHHMM(course.time.start)}-${floatToHHMM(course.time.end)}`
+                {course.slot.day && course.slot.start && course.slot.end
+                  ? `${days[course.slot.day]}, ${course.slot.start.toHHMM()}-${course.slot.end.toHHMM()}`
                   : '-'}
               </td>
               <td>
@@ -516,7 +522,7 @@ function FilterRow({ isNew, filter }: FilterRowProps) {
     labels.SATURDAY,
   ];
   const [filterData, setFilterData] = useState<Filter>(
-    filter ?? { time: { start: null, end: null, day: 1 } },
+    filter ?? { slot: { start: null, end: null, day: 1 } },
   );
 
   return (
@@ -524,13 +530,13 @@ function FilterRow({ isNew, filter }: FilterRowProps) {
       <td>
         <select
           className="select select-bordered select-sm disabled:pl-0 disabled:text-base-content"
-          value={filterData.time.day ?? 0}
+          value={filterData.slot.day ?? 0}
           disabled={!isNew}
           onChange={(e) => {
             setFilterData((f) => ({
               ...f,
-              time: {
-                ...f.time,
+              slot: {
+                ...f.slot,
                 day: parseInt(e.target.value),
               },
             }));
@@ -548,15 +554,13 @@ function FilterRow({ isNew, filter }: FilterRowProps) {
           type="time"
           className="w-min disabled:pl-0 disabled:text-base-content"
           disabled={!isNew}
-          value={
-            filterData.time.start ? floatToHHMM(filterData.time.start) : ''
-          }
+          value={filterData.slot.start ? filterData.slot.start.toHHMM() : ''}
           onChange={(e) => {
             setFilterData((f) => ({
               ...f,
-              time: {
-                ...f.time,
-                start: hhmmToFloat(e.target.value),
+              slot: {
+                ...f.slot,
+                start: Time.fromHHMM(e.target.value),
               },
             }));
           }}
@@ -567,13 +571,13 @@ function FilterRow({ isNew, filter }: FilterRowProps) {
           type="time"
           className="w-min disabled:pl-0 disabled:text-base-content"
           disabled={!isNew}
-          value={filterData.time.end ? floatToHHMM(filterData.time.end) : ''}
+          value={filterData.slot.end ? filterData.slot.end.toHHMM() : ''}
           onChange={(e) => {
             setFilterData((f) => ({
               ...f,
-              time: {
-                ...f.time,
-                end: hhmmToFloat(e.target.value),
+              slot: {
+                ...f.slot,
+                end: Time.fromHHMM(e.target.value),
               },
             }));
           }}
@@ -587,19 +591,19 @@ function FilterRow({ isNew, filter }: FilterRowProps) {
               className="btn btn-outline btn-success btn-sm"
               icon={<CheckIcon width={20} height={20} />}
               disabled={
-                !filterData.time.day ||
-                !filterData.time.start ||
-                !filterData.time.end ||
+                !filterData.slot.day ||
+                !filterData.slot.start ||
+                !filterData.slot.end ||
                 filters.some(
                   (f) =>
-                    f.time.day === filterData.time.day &&
-                    f.time.start === filterData.time.start &&
-                    f.time.end === filterData.time.end,
+                    f.slot.day === filterData.slot.day &&
+                    f.slot.start === filterData.slot.start &&
+                    f.slot.end === filterData.slot.end,
                 )
               }
               onClick={() => {
                 addFilter(filterData);
-                setFilterData({ time: { start: null, end: null, day: null } });
+                setFilterData({ slot: { start: null, end: null, day: null } });
               }}
             />
           ) : (

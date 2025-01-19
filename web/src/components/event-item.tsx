@@ -1,6 +1,5 @@
 import { useLabel } from '@/contexts/label/label-context';
 import { Course, CourseType } from '@/contexts/subjects/subjects-context';
-import { floatToHHMM } from '@/utils';
 import { EventContentArg } from '@fullcalendar/core/index.js';
 import { CopyIcon, LockClosedIcon } from '@radix-ui/react-icons';
 import { useRef, useState } from 'react';
@@ -30,8 +29,8 @@ export default function EventItem({
               <div className="flex gap-2">
                 <div className="flex w-full flex-col">
                   <p className="flex justify-between overflow-hidden text-ellipsis font-bold">
-                    {course.time.start && course.time.end
-                      ? `${floatToHHMM(course.time.start)}-${floatToHHMM(course.time.end)}`
+                    {course.slot.start && course.slot.end
+                      ? `${course.slot.start.toHHMM()}-${course.slot.end.toHHMM()}`
                       : '-'}
 
                     {course.type === CourseType.Lecture && (
@@ -128,8 +127,8 @@ export default function EventItem({
               )}
             </div>
             <p className="flex justify-between gap-1 font-bold">
-              {course.time.start && course.time.end
-                ? `${floatToHHMM(course.time.start)}-${floatToHHMM(course.time.end)}`
+              {course.slot.start && course.slot.end
+                ? `${course.slot.start.toHHMM()}-${course.slot.end.toHHMM()}`
                 : '-'}
 
               {course.type === CourseType.Lecture && (

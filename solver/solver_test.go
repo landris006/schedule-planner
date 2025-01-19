@@ -82,9 +82,9 @@ func testQuickSchedule(filepath string) {
 		for _, course := range course_node.Courses.Elements() {
 			println("\tTárgy neve: " + course.Subject.Name)
 			println("\tKurzuskód: " + course.Code)
-			println("\tNap: " + strconv.Itoa(course.Time.Day.ordinal()))
-			println("\tKezdés: " + strconv.FormatFloat(float64(course.Time.Start), 'g', 4, 32))
-			println("\tVégzés: " + strconv.FormatFloat(float64(course.Time.End), 'g', 4, 32))
+			println("\tNap: " + strconv.Itoa(course.Slot.Day.ordinal()))
+			println("\tKezdés: " + strconv.FormatFloat(float64(course.Slot.Start), 'g', 4, 32))
+			println("\tVégzés: " + strconv.FormatFloat(float64(course.Slot.End), 'g', 4, 32))
 			println("")
 		}
 	}
@@ -104,11 +104,11 @@ func testSchedule(filepath string) {
 		for _, course := range course_node.Courses.Elements() {
 			println("\tTárgy neve: " + course.Subject.Name)
 			println("\tKurzuskód: " + course.Code)
-			println("\tNap: " + strconv.Itoa(course.Time.Day.ordinal()))
+			println("\tNap: " + strconv.Itoa(course.Slot.Day.ordinal()))
 			println(
-				"\tKezdés: " + strconv.FormatFloat(float64(course.Time.Start), 'g', 4, 32),
+				"\tKezdés: " + strconv.FormatFloat(float64(course.Slot.Start), 'g', 4, 32),
 			)
-			println("\tVégzés: " + strconv.FormatFloat(float64(course.Time.End), 'g', 4, 32))
+			println("\tVégzés: " + strconv.FormatFloat(float64(course.Slot.End), 'g', 4, 32))
 			println("")
 		}
 	}

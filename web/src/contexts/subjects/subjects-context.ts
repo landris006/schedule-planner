@@ -1,3 +1,4 @@
+import { Time } from '@/time';
 import { generateSemesters, useQuery } from '@/utils';
 import { Dispatch, SetStateAction, createContext, useContext } from 'react';
 
@@ -30,7 +31,7 @@ export type Subject = {
 };
 
 export type Filter = {
-  time: Time;
+  slot: TimeSlot;
 };
 
 export enum CourseType {
@@ -40,7 +41,7 @@ export enum CourseType {
 
 export type Course = {
   id: string;
-  time: Time;
+  slot: TimeSlot;
   code: string;
   instructor: string;
   place: string;
@@ -50,9 +51,9 @@ export type Course = {
   allowOverlap: boolean;
 };
 
-export type Time = {
-  start: number | null;
-  end: number | null;
+export type TimeSlot = {
+  start: Time | null;
+  end: Time | null;
   day: number | null;
 };
 

@@ -5,8 +5,8 @@ import {
   Subject,
 } from '@/contexts/subjects/subjects-context';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { v4 as uuid } from 'uuid';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { Time } from '@/time';
 
 type Results = {
   input: SolverRequest;
@@ -76,9 +76,9 @@ export const usePlannerStore = create<PlannerState>()(
           ...state,
           filters: state.filters.filter(
             (f) =>
-              f.time.day !== filter.time.day ||
-              f.time.start !== filter.time.start ||
-              f.time.end !== filter.time.end,
+              f.slot.day !== filter.slot.day ||
+              f.slot.start !== filter.slot.start ||
+              f.slot.end !== filter.slot.end,
           ),
         }));
       },
@@ -160,42 +160,24 @@ export const usePlannerStore = create<PlannerState>()(
     }),
     {
       name: 'planner-storage',
-      migrate: (_prevState, _version) => {
-        console.info('Migrating `planner-storage`.');
-        // TODO: maybe validate with zod
-        const prevState = _prevState as PlannerState;
+      storage: createJSONStorage(() => localStorage, {
+        reviver: (_key, value) => {
+          //@ts-expect-error value is an object
+          if (value?.type === 'time') {
+            //@ts-expect-error see replacer
+            return Time.fromMinutes(value.value);
+          }
 
-        if (Array.isArray(prevState.savedSubjects)) {
-          prevState.savedSubjects = prevState.savedSubjects.map((s) => ({
-            ...s,
-            origin: s.origin ?? 'elte',
-            courses: s.courses.map((c: Course) => ({
-              ...c,
-              id: uuid(),
-              fix: c.fix ?? false,
-              allowOverlap: c.allowOverlap ?? false,
-            })),
-          }));
-        }
-
-        if (
-          !prevState.results ||
-          !prevState.results?.output ||
-          !prevState.results?.input?.subjects ||
-          !prevState.results?.input?.filters
-        ) {
-          prevState.results = {
-            input: {
-              subjects: [],
-              filters: [],
-            },
-            output: [],
-          };
-        }
-
-        return prevState;
-      },
-      version: 0.4,
+          return value;
+        },
+        replacer: (_key, value) => {
+          if (value instanceof Time) {
+            return { type: 'time', value: value.minutes };
+          }
+          return value;
+        },
+      }),
+      version: 0.1,
     },
   ),
 );

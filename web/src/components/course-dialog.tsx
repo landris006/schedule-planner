@@ -6,10 +6,11 @@ import { useForm } from 'react-hook-form';
 import FormField from './form-field';
 import Input from './input';
 import { Course, CourseType } from '@/contexts/subjects/subjects-context';
-import { cn, floatToHHMM, hhmmToFloat } from '@/utils';
+import { cn } from '@/utils';
 import Tooltip from './tooltip';
 import React from 'react';
 import { v4 as uuid } from 'uuid';
+import { Time } from '@/time';
 
 type CourseDialogProps = {
   renderTrigger?: (dialogRef: React.RefObject<HTMLDialogElement>) => ReactNode;
@@ -75,13 +76,11 @@ export default function CourseDialog({
       type: CourseType.Lecture,
       ...courseData,
       time: {
-        day: courseData?.time?.day ?? 1,
-        start: courseData?.time?.start
-          ? floatToHHMM(courseData?.time.start)
+        day: courseData?.slot?.day ?? 1,
+        start: courseData?.slot?.start
+          ? courseData.slot.start.toHHMM()
           : undefined,
-        end: courseData?.time?.end
-          ? floatToHHMM(courseData.time.end)
-          : undefined,
+        end: courseData?.slot?.end ? courseData.slot.end.toHHMM() : undefined,
       },
     },
     mode: 'onTouched',
@@ -91,10 +90,10 @@ export default function CourseDialog({
     const courseData: Course = {
       ...formData,
       code: formData.code,
-      time: {
+      slot: {
         day: formData.time.day,
-        start: formData.time.start ? hhmmToFloat(formData.time.start) : null,
-        end: formData.time.end ? hhmmToFloat(formData.time.end) : null,
+        start: formData.time.start ? Time.fromHHMM(formData.time.start) : null,
+        end: formData.time.end ? Time.fromHHMM(formData.time.end) : null,
       },
     };
 

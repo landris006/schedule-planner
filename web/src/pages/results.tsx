@@ -1,45 +1,33 @@
-import { floatToHHMM } from '@/utils';
 import Calendar from '@/components/calendar';
 import { useLabel } from '@/contexts/label/label-context';
 import { usePlannerStore } from '@/stores/planner';
 import { useMemo } from 'react';
 import EventItem from '@/components/event-item';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { Time } from '@/time';
 
 export default function Results() {
   const { labels } = useLabel();
   const { results, calendarSettings, setSlotDuration } = usePlannerStore();
 
   const [earliestStartTime, latestEndTime] = useMemo(() => {
-    const earliestStartTime = results.output.reduce(
-      (acc, subject) =>
-        Math.min(
-          acc,
-          subject.courses
-            .filter((c) => Object.values(c.time).every((v) => !!v))
-            .reduce(
-              (acc, course) => Math.min(acc, course.time.start ?? 0),
-              Infinity,
-            ),
-        ),
-      Infinity,
-    );
-    const latestEndTime = results.output.reduce(
-      (acc, subject) =>
-        Math.max(
-          acc,
-          subject.courses
-            .filter((c) => Object.values(c.time).every((v) => !!v))
-            .reduce(
-              (acc, course) => Math.max(acc, course.time.end ?? Infinity),
-              -Infinity,
-            ),
-        ),
-      -Infinity,
-    );
+    const earliestStartTime = results.output
+      .flatMap((s) => s.courses)
+      .reduce(
+        (acc, course) =>
+          course.slot.start?.isBefore(acc) ? course.slot.start : acc,
+        Time.fromHHMM('23:59'),
+      );
+    const latestEndTime = results.output
+      .flatMap((s) => s.courses)
+      .reduce(
+        (acc, course) =>
+          course.slot.end?.isAfter(acc) ? course.slot.end : acc,
+        Time.fromHHMM('00:00'),
+      );
 
     return [earliestStartTime, latestEndTime];
-  }, [results]);
+  }, [results.output]);
 
   const leftOutSubjects = useMemo(
     () =>
@@ -78,21 +66,17 @@ export default function Results() {
 
         <div className="min-w-[800px]">
           <Calendar
-            slotMinTime={floatToHHMM(
-              earliestStartTime === Infinity ? 0 : earliestStartTime - 2,
-            )}
-            slotMaxTime={floatToHHMM(
-              latestEndTime === -Infinity ? 24 : latestEndTime + 2,
-            )}
+            slotMinTime={earliestStartTime.subtract(Time.fromHours(2)).toHHMM()}
+            slotMaxTime={latestEndTime.add(Time.fromHours(2)).toHHMM()}
             slotDuration={`00:${calendarSettings.slotDuration}:00`}
             events={results.output.flatMap((subject) =>
               subject.courses
-                .filter((c) => Object.values(c.time).every((v) => !!v))
+                .filter((c) => Object.values(c.slot).every((v) => !!v))
                 .map((course) => ({
                   title: `${subject.name}`,
-                  daysOfWeek: [course.time!.day],
-                  startTime: floatToHHMM(course.time.start!),
-                  duration: floatToHHMM(course.time.end! - course.time.start!),
+                  daysOfWeek: [course.slot!.day],
+                  startTime: course.slot.start!.toHHMM(),
+                  duration: course.slot.end!.subtract(course.slot.start!),
                   color: subject.color,
                   course,
                 })),

@@ -43,7 +43,8 @@ func (schedule *Schedule) EvaluatePick(pickedCourses []*CourseNode) int64 {
 				for _, course2 := range node2.Courses.Elements() {
 					if course1.OverlapsWith(course2) {
 						//Szedjük ki azt, amelyiknél megengedtük az ütközést. Ha nincs ilyen, akkor azt, amelyik rövidebb
-						if course1.AllowOverlap || (!course2.AllowOverlap && ((course1.Time.End - course1.Time.Start) <= (course2.Time.End - course2.Time.Start))) {
+						if course1.AllowOverlap ||
+							(!course2.AllowOverlap && ((course1.Slot.End - course1.Slot.Start) <= (course2.Slot.End - course2.Slot.Start))) {
 							invalidCourses.Insert(node1)
 						} else { //!course1.AllowOverlap && (course2.AllowOverlap || ((course1.Time.End - course1.Time.Start) > (course2.Time.End - course2.Time.Start)))
 							invalidCourses.Insert(node2)
@@ -64,15 +65,15 @@ func (schedule *Schedule) EvaluatePick(pickedCourses []*CourseNode) int64 {
 	days := EmptySet[int]()
 	for _, pickedCourseNode := range CreateSet(pickedCourses...).Minus(invalidCourses).Elements() {
 		for _, pickedCourse := range pickedCourseNode.Courses.Elements() {
-			days.Insert(pickedCourse.Time.Day.ordinal())
+			days.Insert(pickedCourse.Slot.Day.ordinal())
 			var neighborValue = 0
 			for _, node := range schedule.PickedCourses.Elements() {
 				neighborValue -= node.Courses.Size()
 				for _, course := range node.Courses.Elements() {
 					if course.AllowOverlap {
 						neighborValue++
-					} else if course.Time.Day == pickedCourse.Time.Day &&
-						(course.Time.Start == pickedCourse.Time.End || course.Time.End == pickedCourse.Time.Start) {
+					} else if course.Slot.Day == pickedCourse.Slot.Day &&
+						(course.Slot.Start == pickedCourse.Slot.End || course.Slot.End == pickedCourse.Slot.Start) {
 						neighborValue += 2
 					}
 				}
@@ -91,8 +92,8 @@ func (schedule *Schedule) listDays() Set[int] {
 	days := EmptySet[int]()
 	for _, course_node := range schedule.PickedCourses.Elements() {
 		for _, course := range course_node.Courses.Elements() {
-			if !course.AllowOverlap && !days.Contains(course.Time.Day.ordinal()) {
-				days.Insert(course.Time.Day.ordinal())
+			if !course.AllowOverlap && !days.Contains(course.Slot.Day.ordinal()) {
+				days.Insert(course.Slot.Day.ordinal())
 			}
 		}
 	}
@@ -137,7 +138,8 @@ func (schedule *Schedule) CountGaps() int {
 				for _, course2 := range node2.Courses.Elements() {
 					if course1.OverlapsWith(course2) {
 						//Szedjük ki azt, amelyiknél megengedtük az ütközést. Ha nincs ilyen, akkor azt, amelyik rövidebb
-						if course1.AllowOverlap || (!course2.AllowOverlap && ((course1.Time.End - course1.Time.Start) <= (course2.Time.End - course2.Time.Start))) {
+						if course1.AllowOverlap ||
+							(!course2.AllowOverlap && ((course1.Slot.End - course1.Slot.Start) <= (course2.Slot.End - course2.Slot.Start))) {
 							invalidCourses.Insert(course1)
 						} else { //!course1.AllowOverlap && (course2.AllowOverlap || ((course1.Time.End - course1.Time.Start) > (course2.Time.End - course2.Time.Start)))
 							invalidCourses.Insert(course2)
@@ -162,15 +164,15 @@ func (schedule *Schedule) CountGaps() int {
 	validCourses = validCourses.Minus(invalidCourses)
 
 	for _, course := range validCourses.Elements() {
-		day := course.Time.Day.ordinal()
+		day := course.Slot.Day.ordinal()
 		if !days.Contains(day) {
 			days.Insert(day)
 			endPoints[day] = EmptySet[float32]()
 		}
 
 		//Az esti órák között van negyed óra szünet => kerekítsünk fél órákra, hogy "összeérjenek"
-		startTime := course.Time.Start
-		endTime := course.Time.End
+		startTime := course.Slot.Start
+		endTime := course.Slot.End
 
 		if startTime >= 16 {
 			startTime = float32(math.Floor(float64(2*startTime)) / 2)
@@ -211,7 +213,10 @@ func (schedule *Schedule) Value() float64 {
 	return sum
 }
 
-func QuickExtendSchedule(pickedCourses Set[*CourseNode], allCourses Set[*CourseNode]) Set[*CourseNode] {
+func QuickExtendSchedule(
+	pickedCourses Set[*CourseNode],
+	allCourses Set[*CourseNode],
+) Set[*CourseNode] {
 	var schedule = CalculateStartNode(pickedCourses, allCourses)
 
 	for schedule.PickableCourses.Size() > 0 {
@@ -291,7 +296,10 @@ func CreateQuickSchedule(graph *CourseGraph) Set[*CourseNode] {
 
 	for _, fix_clique := range fix_cliques {
 		if fix_clique.Valid(graph) {
-			schedule := Schedule{QuickExtendSchedule(fix_clique.PickedCourses, CreateSet(graph.Nodes...)), EmptySet[*CourseNode]()}
+			schedule := Schedule{
+				QuickExtendSchedule(fix_clique.PickedCourses, CreateSet(graph.Nodes...)),
+				EmptySet[*CourseNode](),
+			}
 			var value = schedule.Value()
 			if value > bestValue {
 				bestValue = value
@@ -307,7 +315,13 @@ func CreateQuickSchedule(graph *CourseGraph) Set[*CourseNode] {
 	return bestElements[randomIndex].PickedCourses
 }
 
-func BK(clique Set[*CourseNode], available_vertices Set[*CourseNode], excluded_vertices Set[*CourseNode], cliques *[]Schedule, ordering *map[*CourseNode]float64) {
+func BK(
+	clique Set[*CourseNode],
+	available_vertices Set[*CourseNode],
+	excluded_vertices Set[*CourseNode],
+	cliques *[]Schedule,
+	ordering *map[*CourseNode]float64,
+) {
 	if available_vertices.Union(excluded_vertices).IsEmpty() {
 		*cliques = append(*cliques, Schedule{clique, EmptySet[*CourseNode]()})
 	} else {
@@ -395,7 +409,13 @@ func CreateSchedule(graph *CourseGraph) Set[*CourseNode] {
 				nodes = nodes.Intersection(node.Neighbors)
 			}
 
-			BK(fix_schedule.PickedCourses, nodes, EmptySet[*CourseNode](), &max_cliques, &courseDegMap)
+			BK(
+				fix_schedule.PickedCourses,
+				nodes,
+				EmptySet[*CourseNode](),
+				&max_cliques,
+				&courseDegMap,
+			)
 
 			for _, schedule := range max_cliques {
 				var value = schedule.Value()

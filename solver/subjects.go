@@ -19,7 +19,7 @@ type Subject struct {
 type Course struct {
 	Subject      *Subject   `json:"subject,omitempty"` //A JSON-ba ezt így nem lehet beletenni, olvasás után kell végigfutni az összesen
 	Code         string     `json:"code"`
-	Time         Time       `json:"time"`
+	Slot         Slot       `json:"slot"`
 	Instructor   string     `json:"instructor"`
 	Location     string     `json:"location"`
 	Capacity     int        `json:"capacity"`
@@ -28,7 +28,7 @@ type Course struct {
 	Fix          bool       `json:"fix"` //felhasznalo altal felvett fix kurzus
 }
 
-type Time struct {
+type Slot struct {
 	Start float32 `json:"start"` // 0 - 23.99
 	End   float32 `json:"end"`   // 0 - 23.99
 	Day   Weekday `json:"day"`   // 0 = Sunday, 1 = Monday, 2 = Tuesday, 3 = Wednesday, 4 = Thursday, 5 = Friday, 6 = Saturday
@@ -36,7 +36,7 @@ type Time struct {
 
 // Szűrő - intervallum: mikor ne legyen óra
 type Filter struct {
-	Time Time `json:"time"`
+	Time Slot `json:"time"`
 }
 
 // A Golang nem támogatja az Enum-ot, workaround:
@@ -100,24 +100,24 @@ func (course_a *Course) IsInConflictWith(course_b *Course) bool {
 
 func (course_a *Course) OverlapsWith(course_b *Course) bool {
 
-	if course_a.Time.Day == course_b.Time.Day {
+	if course_a.Slot.Day == course_b.Slot.Day {
 		//Leggyakrabban amikor ütköznek, akkor pont ugyanakkor kezdődnek és végződnek
-		if course_a.Time.Start == course_b.Time.Start && course_a.Time.End == course_b.Time.End {
+		if course_a.Slot.Start == course_b.Slot.Start && course_a.Slot.End == course_b.Slot.End {
 			return true
 		}
 
 		//A többi esetben akkor ütközik, ha az egyiknek valamelyik végpontja a másik végpontjai közé esik
 		//Mindkettőnek meg kel nézni, mert lehet, hogy az egyik óra rövidebb, mint a másik
-		if course_a.Time.Start > course_b.Time.Start && course_a.Time.Start < course_b.Time.End {
+		if course_a.Slot.Start > course_b.Slot.Start && course_a.Slot.Start < course_b.Slot.End {
 			return true
 		}
-		if course_a.Time.End > course_b.Time.Start && course_a.Time.End < course_b.Time.End {
+		if course_a.Slot.End > course_b.Slot.Start && course_a.Slot.End < course_b.Slot.End {
 			return true
 		}
-		if course_b.Time.Start > course_a.Time.Start && course_b.Time.Start < course_a.Time.End {
+		if course_b.Slot.Start > course_a.Slot.Start && course_b.Slot.Start < course_a.Slot.End {
 			return true
 		}
-		if course_b.Time.End > course_a.Time.Start && course_b.Time.End < course_a.Time.End {
+		if course_b.Slot.End > course_a.Slot.Start && course_b.Slot.End < course_a.Slot.End {
 			return true
 		}
 	}
@@ -126,21 +126,21 @@ func (course_a *Course) OverlapsWith(course_b *Course) bool {
 }
 
 func (course *Course) ApplyFilter(f *Filter) bool {
-	if course.Time.Day == f.Time.Day {
-		if course.Time.Start == f.Time.Start && course.Time.End == f.Time.End {
+	if course.Slot.Day == f.Time.Day {
+		if course.Slot.Start == f.Time.Start && course.Slot.End == f.Time.End {
 			return true
 		}
 
-		if course.Time.Start > f.Time.Start && course.Time.Start < f.Time.End {
+		if course.Slot.Start > f.Time.Start && course.Slot.Start < f.Time.End {
 			return true
 		}
-		if course.Time.End > f.Time.Start && course.Time.End < f.Time.End {
+		if course.Slot.End > f.Time.Start && course.Slot.End < f.Time.End {
 			return true
 		}
-		if f.Time.Start > course.Time.Start && f.Time.Start < course.Time.End {
+		if f.Time.Start > course.Slot.Start && f.Time.Start < course.Slot.End {
 			return true
 		}
-		if f.Time.End > course.Time.Start && f.Time.End < course.Time.End {
+		if f.Time.End > course.Slot.Start && f.Time.End < course.Slot.End {
 			return true
 		}
 	}

@@ -5,10 +5,11 @@ import {
   SEARCH_MODES,
   Subject,
   SubjectsContext,
-  Time,
+  TimeSlot,
   CourseType,
 } from '@/contexts/subjects/subjects-context';
-import { hhmmToFloat, useQuery } from '@/utils';
+import { Time } from '@/time';
+import { useQuery } from '@/utils';
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect } from 'react';
 import { v4 as uuid } from 'uuid';
@@ -159,7 +160,7 @@ function parseSubjects(htmlString: string) {
       id: uuid(),
       code,
       instructor,
-      time,
+      slot: time,
       place,
       capacity: parseInt(capacity),
       type: mappedType,
@@ -187,7 +188,7 @@ function parseSubjects(htmlString: string) {
   );
 }
 
-function parseTime(timeString: string): Time | undefined {
+function parseTime(timeString: string): TimeSlot | undefined {
   try {
     const [day, duration] = timeString.split(' ');
 
@@ -196,10 +197,10 @@ function parseTime(timeString: string): Time | undefined {
       .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase(); // ignore casing and remove accents (e.g. Hétfő => hetfo)
 
-    const time: Time = {
+    const time: TimeSlot = {
       day: DAY_MAP[dayCleaned as keyof typeof DAY_MAP],
-      start: hhmmToFloat(duration.split('-')[0]),
-      end: hhmmToFloat(duration.split('-')[1]),
+      start: Time.fromHHMM(duration.split('-')[0]),
+      end: Time.fromHHMM(duration.split('-')[1]),
     };
 
     return time;

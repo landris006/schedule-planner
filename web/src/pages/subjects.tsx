@@ -14,7 +14,7 @@ import {
   useSubjects,
 } from '@/contexts/subjects/subjects-context';
 import { usePlannerStore } from '@/stores/planner';
-import { floatToHHMM, generateColor } from '@/utils';
+import { generateColor } from '@/utils';
 
 export default function Subjects() {
   const { labels } = useLabel();
@@ -237,12 +237,12 @@ function CourseCard({ course }: { course: Course }) {
 
         <>
           <span className="font-bold">{labels.DAY}:</span>
-          <span>{course.time?.day ? days[course.time.day] : '-'}</span>
+          <span>{course.slot?.day ? days[course.slot.day] : '-'}</span>
 
           <span className="font-bold">{labels.TIME}:</span>
           <span>
-            {course.time.start && course.time.end
-              ? `${floatToHHMM(course.time.start)}-${floatToHHMM(course.time.end)}`
+            {course.slot.start && course.slot.end
+              ? `${course.slot.start.toHHMM()}-${course.slot.end.toHHMM()}`
               : '-'}
           </span>
         </>
