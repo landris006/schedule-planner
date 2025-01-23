@@ -36,7 +36,7 @@ type Slot struct {
 
 // Szűrő - intervallum: mikor ne legyen óra
 type Filter struct {
-	Time Slot `json:"time"`
+	Time Slot `json:"slot"`
 }
 
 // A Golang nem támogatja az Enum-ot, workaround:
