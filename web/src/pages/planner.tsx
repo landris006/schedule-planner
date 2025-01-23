@@ -14,6 +14,8 @@ import {
   CheckIcon,
   DoubleArrowRightIcon,
   DropdownMenuIcon,
+  EyeNoneIcon,
+  EyeOpenIcon,
   MagnifyingGlassIcon,
   Pencil1Icon,
   PlusIcon,
@@ -81,12 +83,14 @@ export default function Planner() {
             isLoading={solverQuery.isLoading}
             onClick={() => {
               solverQuery.fetch({
-                subjects: savedSubjects.map((s) => ({
-                  ...s,
-                  courses: s.courses.filter((c) =>
-                    Object.values(c.slot).every((v) => !!v),
-                  ),
-                })),
+                subjects: savedSubjects
+                  .filter((s) => !s.hidden)
+                  .map((s) => ({
+                    ...s,
+                    courses: s.courses.filter((c) =>
+                      Object.values(c.slot).every((v) => !!v),
+                    ),
+                  })),
                 filters,
               });
             }}
@@ -206,26 +210,34 @@ export default function Planner() {
                       .toHHMM(),
                     color: subject.color,
                     course,
+                    subject,
                   })),
               ),
             ]}
             eventContent={(eventInfo) =>
               eventInfo.event.extendedProps.course ? (
-                <EventItem eventInfo={eventInfo} />
+                <EventItem
+                  eventInfo={eventInfo}
+                  hidden={eventInfo.event.extendedProps.subject.hidden}
+                />
               ) : null
             }
             eventDidMount={(eventInfo) => {
               setTimeout(() => {
-                if (
-                  eventInfo.event.extendedProps.filter &&
-                  eventInfo.el.parentElement
-                ) {
+                if (!eventInfo.el.parentElement) {
+                  return;
+                }
+                if (eventInfo.event.extendedProps.filter) {
                   eventInfo.el.parentElement.style.width = '100%';
                   eventInfo.el.parentElement.style.left = '0';
                   eventInfo.el.parentElement.style.backgroundColor = 'red';
                   eventInfo.el.parentElement.style.opacity = '0.5';
                   eventInfo.el.parentElement.style.zIndex = '100';
                   eventInfo.el.parentElement.style.pointerEvents = 'none';
+                }
+
+                if (eventInfo.event.extendedProps.subject.hidden) {
+                  eventInfo.el.parentElement.style.opacity = '0.4';
                 }
               });
             }}
@@ -423,6 +435,28 @@ function SubjectRow({
                 </li>
               </ul>
             </details>
+            <div
+              className="tooltip tooltip-left"
+              data-tip={
+                subject.hidden
+                  ? labels.SUBJECT_EXCLUDED
+                  : labels.EXCLUDE_SUBJECT
+              }
+            >
+              <Button
+                className={cn('btn-circle btn-ghost btn-sm', {
+                  'btn-active': subject.hidden,
+                })}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  updateSubject({
+                    code: subject.code,
+                    hidden: !subject.hidden,
+                  });
+                }}
+                icon={subject.hidden ? <EyeNoneIcon /> : <EyeOpenIcon />}
+              />
+            </div>
 
             <CaretUpIcon
               className={cn('ml-auto h-5 w-5', {
