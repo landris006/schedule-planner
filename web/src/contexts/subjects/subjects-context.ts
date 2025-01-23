@@ -28,6 +28,7 @@ export type Subject = {
   courses: Course[];
   origin: 'elte' | 'custom';
   color?: string;
+  hidden?: boolean;
 };
 
 export type Filter = {

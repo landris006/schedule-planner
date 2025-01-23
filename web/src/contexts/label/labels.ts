@@ -418,6 +418,14 @@ export const labels = {
     hu: 'Vannak tárgyak, amelyeket nem kerültek felvételre!',
     en: 'There are subjects that were not included!',
   },
+  EXCLUDE_SUBJECT: {
+    en: 'Exclude this subject from the schedule',
+    hu: 'Tárgy kihagyása a tervezésből',
+  },
+  SUBJECT_EXCLUDED: {
+    en: 'Excluded from the schedule',
+    hu: 'Tervezésből kihagyva',
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type Labels = typeof labels;

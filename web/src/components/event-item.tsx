@@ -1,7 +1,7 @@
 import { useLabel } from '@/contexts/label/label-context';
 import { Course, CourseType } from '@/contexts/subjects/subjects-context';
 import { EventContentArg } from '@fullcalendar/core/index.js';
-import { CopyIcon, LockClosedIcon } from '@radix-ui/react-icons';
+import { CopyIcon, EyeNoneIcon, LockClosedIcon } from '@radix-ui/react-icons';
 import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import CourseDialog from '@/components/course-dialog';
@@ -10,9 +10,11 @@ import { usePlannerStore } from '@/stores/planner';
 export default function EventItem({
   eventInfo,
   dialogReadOnly = false,
+  hidden = false,
 }: {
   eventInfo: EventContentArg;
   dialogReadOnly?: boolean;
+  hidden?: boolean;
 }) {
   const [isShowingTooltip, setIsShowingTooltip] = useState(false);
   const { updateCourse } = usePlannerStore();
@@ -74,6 +76,14 @@ export default function EventItem({
                         <LockClosedIcon width={20} height={20} />
                       </span>
                     )}
+                    {hidden && (
+                      <span
+                        className="tooltip tooltip-left text-yellow-300 before:-translate-y-[70%]"
+                        data-tip={labels.SUBJECT_EXCLUDED}
+                      >
+                        <EyeNoneIcon width={20} height={20} />
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
@@ -123,6 +133,15 @@ export default function EventItem({
                   data-tip={labels.FIX_TOOLTIP}
                 >
                   <LockClosedIcon width={20} height={20} />
+                </span>
+              )}
+
+              {hidden && (
+                <span
+                  className="tooltip tooltip-left text-yellow-300 before:-translate-y-[70%]"
+                  data-tip={labels.SUBJECT_EXCLUDED}
+                >
+                  <EyeNoneIcon width={20} height={20} />
                 </span>
               )}
             </div>
