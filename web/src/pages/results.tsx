@@ -10,7 +10,7 @@ export default function Results() {
   const { labels } = useLabel();
   const { results, calendarSettings, setSlotDuration } = usePlannerStore();
 
-  const [earliestStartTime, latestEndTime] = useMemo(() => {
+  const [earliestStartTime, latestEndTime, credits] = useMemo(() => {
     const earliestStartTime = results.output
       .flatMap((s) => s.courses)
       .reduce(
@@ -26,7 +26,12 @@ export default function Results() {
         Time.fromHHMM('00:00'),
       );
 
-    return [earliestStartTime, latestEndTime];
+    const credits = results.output.reduce(
+      (acc, subject) => acc + (subject.credits ?? 0),
+      0,
+    );
+
+    return [earliestStartTime, latestEndTime, credits];
   }, [results.output]);
 
   const leftOutSubjects = useMemo(
@@ -40,7 +45,14 @@ export default function Results() {
   return (
     <div className="p-3">
       <div className="mx-auto flex max-w-7xl flex-col gap-3 overflow-x-auto">
-        <h1 className="hidden">{labels.RESULTS}</h1>
+        <h1 className="text-2xl">
+          {labels.RESULTS}{' '}
+          {credits > 0 && (
+            <span className="text-success">
+              ({labels.TOTAL_CREDITS.toLowerCase()}: {credits})
+            </span>
+          )}
+        </h1>
 
         {leftOutSubjects.length > 0 && (
           <details role="alert" className="collapse collapse-arrow bg-base-200">

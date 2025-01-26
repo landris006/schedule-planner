@@ -175,6 +175,21 @@ export default function SubjectDialog({
             </FormField>
 
             <FormField
+              label={labels.CREDITS}
+              errorMessage={errors.credits?.message}
+            >
+              <Input
+                className="w-16"
+                type="number"
+                aria-invalid={!!errors.credits}
+                min={0}
+                {...register('credits', {
+                  valueAsNumber: true,
+                })}
+              />
+            </FormField>
+
+            <FormField
               label={labels.COLOR}
               errorMessage={errors.color?.message}
             >

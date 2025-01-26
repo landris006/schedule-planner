@@ -128,7 +128,7 @@ export default function Planner() {
                   <th className="bg-base-100 text-left">{labels.NAME}</th>
 
                   <th className="hidden bg-base-100 text-left md:table-cell">
-                    {labels.TYPE}
+                    {labels.CREDITS} / {labels.TYPE}
                   </th>
                   <th className="hidden bg-base-100 text-left md:table-cell">
                     {labels.INSTRUCTOR}
@@ -335,7 +335,7 @@ function SubjectRow({
         </td>
         <td>{subject.name}</td>
 
-        <td className="hidden md:table-cell"></td>
+        <td className="hidden md:table-cell">{subject.credits}</td>
         <td className="hidden md:table-cell"></td>
         <td className="hidden md:table-cell"></td>
         <td className="hidden md:table-cell"></td>

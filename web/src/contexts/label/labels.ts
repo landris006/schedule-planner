@@ -426,6 +426,10 @@ export const labels = {
     en: 'Excluded from the schedule',
     hu: 'Tervezésből kihagyva',
   },
+  TOTAL_CREDITS: {
+    hu: 'Kreditek összesen',
+    en: 'Total credits',
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type Labels = typeof labels;
