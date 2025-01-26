@@ -28,6 +28,7 @@ export type Subject = {
   courses: Course[];
   origin: 'elte' | 'custom';
   color?: string;
+  credits?: number;
   hidden?: boolean;
 };
 

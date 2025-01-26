@@ -12,6 +12,7 @@ type Subject struct {
 	Code    string    `json:"code"`
 	Name    string    `json:"name"`
 	Color   string    `json:"color"`
+	Credits int       `json:"credits"`
 	Courses []*Course `json:"courses"`
 }
 
