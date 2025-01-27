@@ -1,5 +1,6 @@
 import { UpdateIcon } from '@radix-ui/react-icons';
 import { cn } from '@/utils';
+import { JSX } from 'react';
 
 type SpinnerProps = {
   width?: number;

@@ -1,6 +1,7 @@
 import { QuestionMarkIcon } from '@radix-ui/react-icons';
 import Button from './button';
 import { cn } from '@/utils';
+import { JSX } from 'react';
 
 type TooltipProps = {
   text: string;

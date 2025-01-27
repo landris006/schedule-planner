@@ -1,5 +1,5 @@
 import { cn } from '@/utils';
-import { ReactNode } from 'react';
+import { JSX, ReactNode } from 'react';
 
 type FormFieldProps = {
   label: string;

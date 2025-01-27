@@ -5,7 +5,7 @@ import {
   SymbolIcon,
 } from '@radix-ui/react-icons';
 import Button from './button';
-import { ReactNode, useRef } from 'react';
+import { JSX, ReactNode, useRef } from 'react';
 import { useLabel } from '@/contexts/label/label-context';
 import { Controller, useForm } from 'react-hook-form';
 import FormField from './form-field';
@@ -16,7 +16,9 @@ import React from 'react';
 import { usePlannerStore } from '@/stores/planner';
 
 type SubjectDialogProps = {
-  renderTrigger?: (dialogRef: React.RefObject<HTMLDialogElement>) => ReactNode;
+  renderTrigger?: (
+    dialogRef: React.RefObject<HTMLDialogElement | null>,
+  ) => ReactNode;
   onClose?: () => void;
   onSubmit?: (subjectData: Subject) => void;
 } & (

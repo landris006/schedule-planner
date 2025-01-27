@@ -1,5 +1,5 @@
 import { cn } from '@/utils';
-import { forwardRef } from 'react';
+import { JSX, forwardRef } from 'react';
 import Spinner from './spinner';
 
 const tooltipDirectionMap = {

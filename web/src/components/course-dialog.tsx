@@ -13,7 +13,9 @@ import { v4 as uuid } from 'uuid';
 import { Time } from '@/time';
 
 type CourseDialogProps = {
-  renderTrigger?: (dialogRef: React.RefObject<HTMLDialogElement>) => ReactNode;
+  renderTrigger?: (
+    dialogRef: React.RefObject<HTMLDialogElement | null>,
+  ) => ReactNode;
   onClose?: () => void;
   onSubmit?: (courseData: Course) => void;
 } & (

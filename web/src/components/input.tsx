@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { JSX, forwardRef } from 'react';
 import { cn } from '@/utils';
 
 const Input = forwardRef<HTMLInputElement, JSX.IntrinsicElements['input']>(
