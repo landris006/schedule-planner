@@ -11,10 +11,12 @@ export default function EventItem({
   eventInfo,
   dialogReadOnly = false,
   hidden = false,
+  showPlace = false,
 }: {
   eventInfo: EventContentArg;
   dialogReadOnly?: boolean;
   hidden?: boolean;
+  showPlace?: boolean;
 }) {
   const [isShowingTooltip, setIsShowingTooltip] = useState(false);
   const { updateCourse } = usePlannerStore();
@@ -164,6 +166,10 @@ export default function EventItem({
             <p className="overflow-x-hidden text-ellipsis">
               {eventInfo.event.title}
             </p>
+
+            {showPlace && (
+              <p className="overflow-x-hidden text-ellipsis">{course.place}</p>
+            )}
           </div>
         )}
       />

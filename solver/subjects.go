@@ -21,6 +21,7 @@ type Course struct {
 	Subject      *Subject   `json:"subject,omitempty"` //A JSON-ba ezt így nem lehet beletenni, olvasás után kell végigfutni az összesen
 	Code         string     `json:"code"`
 	Slot         Slot       `json:"slot"`
+	Place        string     `json:"place"`
 	Instructor   string     `json:"instructor"`
 	Location     string     `json:"location"`
 	Capacity     int        `json:"capacity"`
