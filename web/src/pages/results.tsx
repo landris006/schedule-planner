@@ -94,7 +94,11 @@ export default function Results() {
                 })),
             )}
             eventContent={(eventInfo) => (
-              <EventItem dialogReadOnly={true} eventInfo={eventInfo} />
+              <EventItem
+                dialogReadOnly={true}
+                eventInfo={eventInfo}
+                showPlace
+              />
             )}
           />
           <label htmlFor="slotDuration">{labels.SLOT_DURATION}</label>
